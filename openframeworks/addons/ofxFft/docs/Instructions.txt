@@ -1,0 +1,10 @@
+To install ofxFftw, move the ofxFftw folder to your of/addons/ folder.
+
+With each project, you need to:
+
+1 Add to your compiler search path:
+  of/addons/ofxFftw/src/
+  of/libs/fftw/include/
+
+2 On Windows, link with:
+  of/addons/lib/fftw/lib/win32/libfftw3f-3.dll
