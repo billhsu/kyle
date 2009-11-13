@@ -79,8 +79,9 @@ vector<Particle*> ParticleSystem::getRegion(unsigned minX, unsigned minY, unsign
 
 void ParticleSystem::setupForces() {
 	int n = bins.size();
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		bins[i].clear();
+	}
 	n = particles.size();
 	unsigned xBin, yBin, bin;
 	for(int i = 0; i < n; i++) {
@@ -115,10 +116,10 @@ void ParticleSystem::addForce(const Particle& particle, float radius, float scal
 }
 
 void ParticleSystem::addForce(float targetX, float targetY, float radius, float scale) {
-	int minX = (int) (targetX - radius);
-	int minY = (int) (targetY - radius);
-	int maxX = (int) (targetX + radius);
-	int maxY = (int) (targetY + radius);
+	float minX = targetX - radius;
+	float minY = targetY - radius;
+	float maxX = targetX + radius;
+	float maxY = targetY + radius;
 	if(minX < 0)
 		minX = 0;
 	if(minY < 0)
@@ -147,38 +148,41 @@ void ParticleSystem::addForce(float targetX, float targetY, float radius, float 
 			int n = curBin.size();
 			for(int i = 0; i < n; i++) {
 				Particle& curParticle = *(curBin[i]);
-				xd = curParticle.x - targetX;
-				yd = curParticle.y - targetY;
-				length = xd * xd + yd * yd;
-				if(length > 0 && length < maxrsq) {
-					#ifdef DRAW_FORCES
-						glVertex2f(targetX, targetY);
-						glVertex2f(curParticle.x, curParticle.y);
-					#endif
-					#ifdef USE_INVSQRT
-						xhalf = 0.5f * length;
-						lengthi = *(int*) &length; // store floating-point bits in integer
-						lengthi = 0x5f3759d5 - (lengthi >> 1); // initial guess for Newton's method
-						length = *(float*) &lengthi; // convert new bits into float
-						length *= 1.5f - xhalf * length * length; // One round of Newton's method
-						xd *= length;
-						yd *= length;
-						length *= radius;
-						length = 1 / length;
-						length = (1 - length);
-						length *= scale;
-						xd *= length;
-						yd *= length;
-						curParticle.xf += xd;
-						curParticle.yf += yd;
-					#else
-						length = sqrtf(length);
-						xd /= length;
-						yd /= length;
-						effect = (1 - (length / radius)) * scale;
-						curParticle.xf += xd * effect;
-						curParticle.yf += yd * effect;
-					#endif
+				if(curParticle.x > minX && curParticle.x < maxX &&
+					curParticle.y > minY && curParticle.y < maxY) {
+					xd = curParticle.x - targetX;
+					yd = curParticle.y - targetY;
+					length = xd * xd + yd * yd;
+					if(length > 0 && length < maxrsq) {
+						#ifdef DRAW_FORCES
+							glVertex2f(targetX, targetY);
+							glVertex2f(curParticle.x, curParticle.y);
+						#endif
+						#ifdef USE_INVSQRT
+							xhalf = 0.5f * length;
+							lengthi = *(int*) &length;
+							lengthi = 0x5f3759df - (lengthi >> 1);
+							length = *(float*) &lengthi;
+							length *= 1.5f - xhalf * length * length;
+							xd *= length;
+							yd *= length;
+							length *= radius;
+							length = 1 / length;
+							length = (1 - length);
+							length *= scale;
+							xd *= length;
+							yd *= length;
+							curParticle.xf += xd;
+							curParticle.yf += yd;
+						#else
+							length = sqrtf(length);
+							xd /= length;
+							yd /= length;
+							effect = (1 - (length / radius)) * scale;
+							curParticle.xf += xd * effect;
+							curParticle.yf += yd * effect;
+						#endif
+					}
 				}
 			}
 		}

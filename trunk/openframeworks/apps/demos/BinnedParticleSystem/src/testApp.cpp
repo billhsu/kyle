@@ -7,11 +7,11 @@ void testApp::setup(){
 	// because the screen is not subdivided enough. if
 	// it's too low, the bins take up so much memory as to
 	// become inefficient.
-	int binPower = 2;
+	int binPower = 3;
 
 	particleSystem.setup(ofGetWidth(), ofGetHeight(), binPower);
 
-	kParticles = 32;
+	kParticles = 12;
 	float padding = 0;
 	float maxVelocity = .5;
 	for(int i = 0; i < kParticles * 1024; i++) {
@@ -30,8 +30,8 @@ void testApp::setup(){
 	pointOpacity = 128;
 	isMousePressed = false;
 	slowMotion = false;
-	particleNeighborhood = 2.5;
-	particleRepulsion = 1;
+	particleNeighborhood = 4;
+	particleRepulsion = 2;
 	centerAttraction = .01;
 }
 
