@@ -18,6 +18,10 @@ static float globalMinHsv[3] = {0, 0, 0};
 static float globalMinAlpha = 0;
 static float globalMaxAlpha = 1;
 
+static void setMode(ofxColorMode mode) {
+	globalMode = mode;
+}
+
 static void setRange(const float max[3] = globalMaxRgb, const float min[3] = globalMinRgb) {
 	set(globalMaxRgb, max);
 	set(globalMinRgb, min);
