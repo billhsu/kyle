@@ -33,13 +33,13 @@ float* ofxFftw::fft(float* input, fftMode mode) {
 	// http://www.fftw.org/fftw3_doc/The-Halfcomplex_002dformat-DFT.html
 	setReal(fftOut); // will only copy the first half
 	imag[0] = 0;
-	for(int i = 1; i < bins; i++)
+	for (int i = 1; i < bins; i++)
 		imag[i] = fftOut[signalSize - i];
 	cartesianReady = true;
 	polarReady = false;
-	if(mode == OF_FFT_CARTESIAN)
+	if (mode == OF_FFT_CARTESIAN)
 		return getReal();
-	else if(mode == OF_FFT_POLAR)
+	else if (mode == OF_FFT_POLAR)
 		return getAmplitude();
 }
 
@@ -58,17 +58,17 @@ float* ofxFftw::ifft(float* input) {
 }
 
 float* ofxFftw::ifft(float* a, float* b, fftMode mode) {
-	if(mode == OF_FFT_POLAR) {
+	if (mode == OF_FFT_POLAR) {
 		setAmplitude(a);
 		setPhase(b);
 		updateCartesian();
-	} else if(mode == OF_FFT_CARTESIAN) {
+	} else if (mode == OF_FFT_CARTESIAN) {
 		setReal(a);
 		setImaginary(b);
 	}
 
 	memcpy(ifftIn, amplitude, sizeof(float) * bins);
-	for(int i = 1; i < signalSize; i++)
+	for (int i = 1; i < signalSize; i++)
 		ifftIn[signalSize - i] = phase[i];
 
 	fftwf_execute(ifftPlan);
