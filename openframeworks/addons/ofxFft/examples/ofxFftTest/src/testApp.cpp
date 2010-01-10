@@ -4,7 +4,7 @@ void testApp::setup() {
 	plotHeight = 128;
 	bufferSize = 512;
 
-	fft = ofxFft::create(bufferSize, OF_FFT_HAMMING);
+	fft = ofxFft::create(bufferSize, OF_FFT_HAMMING, OF_FFT_BASIC);
 
 	// 0 output channels,
 	// 1 input channel
@@ -15,7 +15,6 @@ void testApp::setup() {
 	ofSoundStreamSetup(0, 1, this, 44100, bufferSize, 4);
 
 	audioInput = new float[bufferSize];
-	fftOutput = NULL;
 
 	mode = SINE;
 	appWidth = ofGetWidth();
@@ -25,21 +24,15 @@ void testApp::setup() {
 }
 
 void testApp::draw() {
-
 	ofSetColor(0xffffff);
-
 	ofPushMatrix();
 	glTranslatef(16, 16, 0);
-	plot(audioInput, bufferSize, plotHeight / 2, 0);
 	ofDrawBitmapString("Audio Input", 0, 0);
-
-	if(fftOutput != NULL) {
-		glTranslatef(0, plotHeight + 16, 0);
-		plot(fftOutput, fft->getBinSize(), -plotHeight, plotHeight / 2);
-		ofDrawBitmapString("FFT", 0, 0);
-		ofPopMatrix();
-	}
-
+	plot(audioInput, bufferSize, plotHeight / 2, 0);
+	glTranslatef(0, plotHeight + 16, 0);
+	ofDrawBitmapString("FFT", 0, 0);
+	fft->draw(0, 0, fft->getBinSize(), plotHeight);
+	ofPopMatrix();
 	string msg = ofToString((int) ofGetFrameRate()) + " fps";
 	ofDrawBitmapString(msg, appWidth - 80, appHeight - 20);
 }
@@ -67,8 +60,7 @@ void testApp::audioReceived(float* input, int bufferSize, int nChannels) {
 		for (int i = 0; i < bufferSize; i++)
 			audioInput[i] = sinf(PI * i * mouseX / appWidth);
 	}
-	// compute fft given audioInput
-	fftOutput = fft->fft(audioInput);
+	fft->fft(audioInput);
 }
 
 void testApp::keyPressed(int key) {

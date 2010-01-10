@@ -21,7 +21,6 @@ public:
 	ofxFft* fft;
 
 	float* audioInput;
-	float* fftOutput;
 
 	float appWidth;
 	float appHeight;
