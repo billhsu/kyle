@@ -1,12 +1,12 @@
 #include "ofxFft.h"
 
-//#include "ofxFftBasic.h"
+#include "ofxFftBasic.h"
 #include "ofxFftw.h"
 
 ofxFft* ofxFft::create(int signalSize, fftWindowType windowType, fftImplementation implementation) {
 	ofxFft* fft;
 	if(implementation == OF_FFT_BASIC) {
-		//fft = new ofxFftBasic();
+		fft = new ofxFftBasic();
 	} else if(implementation == OF_FFT_FFTW) {
 		fft = new ofxFftw();
 	}
@@ -81,10 +81,12 @@ void ofxFft::draw(float x, float y, float width, float height) {
 	ofTranslate(x, y);
 	ofNoFill();
 	ofRect(0, 0, width, height);
+	ofTranslate(0, height);
+	ofScale(width / bins, -height);
 	ofBeginShape();
 	getAmplitude();
 	for (int i = 0; i < bins; i++)
-		ofVertex(i, amplitude[i] * height);
+		ofVertex(i, amplitude[i]);
 	ofEndShape();
 
 	ofPopMatrix();
@@ -118,7 +120,6 @@ void ofxFft::setAmplitude(float* amplitude) {
 void ofxFft::setPhase(float* phase) {
 	memcpy(this->phase, phase, sizeof(float) * bins);
 }
-
 
 float* ofxFft::getSignal() {
 	if(!signalReady) {
@@ -169,4 +170,33 @@ void ofxFft::updatePolar() {
 		phase[i] = cartesianToPhase(real[i], imag[i]);
 	}
 	polarReady = true;
+}
+
+float* ofxFft::fft(float* input, fftMode mode) {
+	executeFft(input);
+	cartesianReady = true;
+	polarReady = false;
+	if (mode == OF_FFT_CARTESIAN)
+		return getReal();
+	else if (mode == OF_FFT_POLAR)
+		return getAmplitude();
+}
+
+float* ofxFft::ifft(float* input) {
+	executeIfft(input);
+	signalReady = false;
+	return getSignal();
+}
+
+float* ofxFft::ifft(float* a, float* b, fftMode mode) {
+	if (mode == OF_FFT_POLAR) {
+		setAmplitude(a);
+		setPhase(b);
+		updateCartesian();
+		executeIfft(real, imag);
+	} else if (mode == OF_FFT_CARTESIAN) {
+		executeIfft(a, b);
+	}
+	signalReady = false;
+	return getSignal();
 }

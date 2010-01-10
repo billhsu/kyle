@@ -1,7 +1,7 @@
 #include "ofxFftw.h"
 
-ofxFftw::ofxFftw() {
-	fftPlan = NULL;
+ofxFftw::ofxFftw() :
+	fftPlan(NULL) {
 }
 
 void ofxFftw::setup(int signalSize, fftWindowType windowType) {
@@ -23,60 +23,33 @@ void ofxFftw::setup(int signalSize, fftWindowType windowType) {
 	                             FFTW_DESTROY_INPUT | FFTW_MEASURE);
 }
 
-float* ofxFftw::fft(float* input, fftMode mode) {
+void ofxFftw::executeFft(float* input) {
 	memcpy(fftIn, input, sizeof(float) * signalSize);
 	runWindow(fftIn);
-
 	fftwf_execute(fftPlan);
-
 	// explanation of halfcomplex format:
 	// http://www.fftw.org/fftw3_doc/The-Halfcomplex_002dformat-DFT.html
 	setReal(fftOut); // will only copy the first half
 	imag[0] = 0;
 	for (int i = 1; i < bins; i++)
 		imag[i] = fftOut[signalSize - i];
-	cartesianReady = true;
-	polarReady = false;
-	if (mode == OF_FFT_CARTESIAN)
-		return getReal();
-	else if (mode == OF_FFT_POLAR)
-		return getAmplitude();
 }
 
-float* ofxFftw::ifft(float* input) {
-	// assume the phase is 0
-	memset(&(ifftIn[bins]), 0, sizeof(float) * bins);
+void ofxFftw::executeIfft(float* input) {
 	// directly copy amplitude as real component
 	memcpy(ifftIn, input, sizeof(float) * bins);
-
+	// assume the phase is 0
+	memset(&(ifftIn[bins]), 0, sizeof(float) * bins);
 	fftwf_execute(ifftPlan);
-
 	setSignal(ifftOut);
-	signalReady = false;
-
-	return getSignal();
 }
 
-float* ofxFftw::ifft(float* a, float* b, fftMode mode) {
-	if (mode == OF_FFT_POLAR) {
-		setAmplitude(a);
-		setPhase(b);
-		updateCartesian();
-	} else if (mode == OF_FFT_CARTESIAN) {
-		setReal(a);
-		setImaginary(b);
-	}
-
-	memcpy(ifftIn, amplitude, sizeof(float) * bins);
+void ofxFftw::executeIfft(float* real, float* imag) {
+	memcpy(ifftIn, real, sizeof(float) * bins);
 	for (int i = 1; i < signalSize; i++)
-		ifftIn[signalSize - i] = phase[i];
-
+		ifftIn[signalSize - i] = imag[i];
 	fftwf_execute(ifftPlan);
-
 	setSignal(ifftOut);
-	signalReady = false;
-
-	return getSignal();
 }
 
 ofxFftw::~ofxFftw() {
