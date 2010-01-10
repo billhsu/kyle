@@ -27,7 +27,7 @@ public:
 	virtual ~ofxFft();
 
 	// forward fft
-	virtual float* fft(float* input, fftMode mode = OF_FFT_POLAR) = 0;
+	float* fft(float* input, fftMode mode = OF_FFT_POLAR);
 	int getBinSize();
 	float* getReal();
 	float* getImaginary();
@@ -37,8 +37,8 @@ public:
 	// float* getPower();
 
 	// inverse fft
-	virtual float* ifft(float* input) = 0;
-	virtual float* ifft(float* a, float* b, fftMode mode = OF_FFT_POLAR) = 0;
+	float* ifft(float* input);
+	float* ifft(float* a, float* b, fftMode mode = OF_FFT_POLAR);
 	int getSignalSize();
 	float* getSignal();
 
@@ -50,6 +50,9 @@ public:
 
 protected:
 	virtual void setup(int bins, fftWindowType windowType);
+	virtual void executeFft(float* input) = 0;
+	virtual void executeIfft(float* input) = 0;
+	virtual void executeIfft(float* real, float* imag) = 0;
 
 	// time domain data and methods
 	fftWindowType windowType;

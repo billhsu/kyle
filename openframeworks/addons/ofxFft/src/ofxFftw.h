@@ -6,14 +6,13 @@
 class ofxFftw : public ofxFft{
 public:
 	ofxFftw();
-	~ofxFftw();
-
 	void setup(int signalSize, fftWindowType windowType);
-	float* fft(float* input, fftMode mode);
-	float* ifft(float* input);
-	float* ifft(float* a, float* b, fftMode mode);
-
+	~ofxFftw();
 private:
 	float *fftIn, *fftOut, *ifftIn, *ifftOut;
 	fftwf_plan fftPlan, ifftPlan;
+protected:
+	void executeFft(float* input);
+	void executeIfft(float* input);
+	void executeIfft(float* real, float* imag);
 };

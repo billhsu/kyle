@@ -72,35 +72,12 @@ int ReverseBits(int index, int NumBits) {
 	return rev;
 }
 
-void ofxFftBasic::setup(int _bins, fftWindowType _windowType) {
-	ofxFft::setup(_bins, _windowType);
-
-	gFFTBitTable = new int *[MaxFastBits];
-
-	int len = 2;
-	for (int b = 1; b <= MaxFastBits; b++) {
-
-		gFFTBitTable[b - 1] = new int[len];
-
-		for (int i = 0; i < len; i++)
-			gFFTBitTable[b - 1][i] = ReverseBits(i, b);
-
-		len <<= 1;
-	}
-
-	ready = true;
-}
-
 inline int FastReverseBits(int i, int NumBits) {
 	if (NumBits <= MaxFastBits)
 		return gFFTBitTable[NumBits - 1][i];
 	else
 		return ReverseBits(i, NumBits);
 }
-
-/*
- * Complex Fast Fourier Transform
- */
 
 void ofxFftBasic::FFT(int bins, bool InverseTransform, float *RealIn, float *ImagIn, float *RealOut, float *ImagOut) {
 	int NumBits;                 /* Number of bits needed to store indices */
@@ -339,59 +316,8 @@ void ofxFftBasic::FastPowerSpectrum(int bins, float *input, float *output) {
 	delete[]ImagOut;
 }
 
-
-/* destructor */
-ofxFftBasic::~ofxFftBasic() {
-
-	// delete the column arrays
-	for (int b = 1; b <= MaxFastBits; b++) {
-		delete [] gFFTBitTable[b - 1];
-	}
-
-	// and then delete the row pointer array itself:
-	delete [] gFFTBitTable;
-
-	gFFTBitTable = NULL;
-}
-
-void ofxFftBasic::fft(float *input, float *output) {
-	if (!ready) {
-		ofLog(OF_LOG_ERROR, "setup() must be called before fft()\n");
-		return;
-	}
-
-	/* processing variables*/
-	float *in_real  = new float[bins];
-	float *in_img   = new float[bins];
-	float *out_real = new float[bins];
-	float *out_img  = new float[bins];
-
-	for (int i = 0; i < bins; i++) {
-		in_real[i] = input[i];
-	}
-
-	runWindow(in_real);
-	RealFFT(bins, in_real, out_real, out_img);
-
-	float normalizer = 2. / windowSum;
-
-	for (int i = 1; i < this->bins; i++) {
-		output[i] = cartesianToAmplitude(out_real[i], out_img[i]) * normalizer;
-	}
-
-	delete [] in_real;
-	delete [] in_img;
-	delete [] out_real;
-	delete [] out_img;
-}
-
 /* Calculate the power spectrum */
 void ofxFftBasic::powerSpectrum(int start, int half, float *data, int bins, float *magnitude, float *phase, float *power, float *avg_power) {
-	if (!ready) {
-		ofLog(OF_LOG_ERROR, "setup() must be called first!\n");
-		return;
-	}
-
 	int i;
 	float total_power = 0.0f;
 
@@ -427,11 +353,6 @@ void ofxFftBasic::powerSpectrum(int start, int half, float *data, int bins, floa
 }
 
 void ofxFftBasic::inversePowerSpectrum(int start, int half, int bins, float *output, float *magnitude, float *phase) {
-	if (!ready) {
-		ofLog(OF_LOG_ERROR, "setup() must be called first!\n");
-		return;
-	}
-
 	/* processing variables*/
 	float *in_real = new float[bins];
 	float *in_img = new float[bins];
@@ -461,4 +382,42 @@ void ofxFftBasic::inversePowerSpectrum(int start, int half, int bins, float *out
 	delete[]in_img;
 	delete[]out_real;
 	delete[]out_img;
+}
+
+void ofxFftBasic::setup(int signalSize, fftWindowType windowType) {
+	ofxFft::setup(signalSize, windowType);
+
+	gFFTBitTable = new int *[MaxFastBits];
+	int len = 2;
+	for (int b = 1; b <= MaxFastBits; b++) {
+		gFFTBitTable[b - 1] = new int[len];
+		for (int i = 0; i < len; i++)
+			gFFTBitTable[b - 1][i] = ReverseBits(i, b);
+		len <<= 1;
+	}
+}
+
+ofxFftBasic::~ofxFftBasic() {
+	// delete the column arrays
+	for (int b = 1; b <= MaxFastBits; b++) {
+		delete [] gFFTBitTable[b - 1];
+	}
+
+	// and then delete the row pointer array itself:
+	delete [] gFFTBitTable;
+
+	gFFTBitTable = NULL;
+}
+
+void ofxFftBasic::executeFft(float* input) {
+	setSignal(input);
+	runWindow(signal);
+	RealFFT(signalSize, signal, real, imag);
+	imag[0] = 0;
+}
+
+void ofxFftBasic::executeIfft(float* input) {
+}
+
+void ofxFftBasic::executeIfft(float* real, float* imag) {
 }
