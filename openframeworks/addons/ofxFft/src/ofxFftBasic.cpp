@@ -38,166 +38,160 @@
 int **gFFTBitTable = NULL;
 const int MaxFastBits = 16;
 
-int IsPowerOfTwo(int x)
-{
-   if (x < 2)
-      return false;
+int IsPowerOfTwo(int x) {
+	if (x < 2)
+		return false;
 
-   if (x & (x - 1))             /* Thanks to 'byang' for this cute trick! */
-      return false;
+	if (x & (x - 1))             /* Thanks to 'byang' for this cute trick! */
+		return false;
 
-   return true;
+	return true;
 }
 
-int NumberOfBitsNeeded(int PowerOfTwo)
-{
-   int i;
+int NumberOfBitsNeeded(int PowerOfTwo) {
+	int i;
 
-   if (PowerOfTwo < 2) {
-      fprintf(stderr, "Error: FFT called with size %d\n", PowerOfTwo);
-      exit(1);
-   }
+	if (PowerOfTwo < 2) {
+		fprintf(stderr, "Error: FFT called with size %d\n", PowerOfTwo);
+		exit(1);
+	}
 
-   for (i = 0;; i++)
-      if (PowerOfTwo & (1 << i))
-         return i;
+	for (i = 0;; i++)
+		if (PowerOfTwo & (1 << i))
+			return i;
 }
 
-int ReverseBits(int index, int NumBits)
-{
-   int i, rev;
+int ReverseBits(int index, int NumBits) {
+	int i, rev;
 
-   for (i = rev = 0; i < NumBits; i++) {
-      rev = (rev << 1) | (index & 1);
-      index >>= 1;
-   }
+	for (i = rev = 0; i < NumBits; i++) {
+		rev = (rev << 1) | (index & 1);
+		index >>= 1;
+	}
 
-   return rev;
+	return rev;
 }
 
-void ofxFftBasic::setup(int _bins, fftWindowType _windowType)
-{
+void ofxFftBasic::setup(int _bins, fftWindowType _windowType) {
 	ofxFft::setup(_bins, _windowType);
 
-   gFFTBitTable = new int *[MaxFastBits];
+	gFFTBitTable = new int *[MaxFastBits];
 
-   int len = 2;
-   for (int b = 1; b <= MaxFastBits; b++) {
+	int len = 2;
+	for (int b = 1; b <= MaxFastBits; b++) {
 
-      gFFTBitTable[b - 1] = new int[len];
+		gFFTBitTable[b - 1] = new int[len];
 
-      for (int i = 0; i < len; i++)
-         gFFTBitTable[b - 1][i] = ReverseBits(i, b);
+		for (int i = 0; i < len; i++)
+			gFFTBitTable[b - 1][i] = ReverseBits(i, b);
 
-      len <<= 1;
-   }
+		len <<= 1;
+	}
 
-    ready = true;
+	ready = true;
 }
 
-inline int FastReverseBits(int i, int NumBits)
-{
-   if (NumBits <= MaxFastBits)
-      return gFFTBitTable[NumBits - 1][i];
-   else
-      return ReverseBits(i, NumBits);
+inline int FastReverseBits(int i, int NumBits) {
+	if (NumBits <= MaxFastBits)
+		return gFFTBitTable[NumBits - 1][i];
+	else
+		return ReverseBits(i, NumBits);
 }
 
 /*
  * Complex Fast Fourier Transform
  */
 
-void ofxFftBasic::FFT(int bins, bool InverseTransform, float *RealIn, float *ImagIn, float *RealOut, float *ImagOut)
-{
-   int NumBits;                 /* Number of bits needed to store indices */
-   int i, j, k, n;
-   int BlockSize, BlockEnd;
+void ofxFftBasic::FFT(int bins, bool InverseTransform, float *RealIn, float *ImagIn, float *RealOut, float *ImagOut) {
+	int NumBits;                 /* Number of bits needed to store indices */
+	int i, j, k, n;
+	int BlockSize, BlockEnd;
 
-   double angle_numerator = 2.0 * PI;
-   float tr, ti;                /* temp real, temp imaginary */
+	double angle_numerator = 2.0 * PI;
+	float tr, ti;                /* temp real, temp imaginary */
 
-   if (!IsPowerOfTwo(bins)) {
-      fprintf(stderr, "%d is not a power of two\n", bins);
-      exit(1);
-   }
+	if (!IsPowerOfTwo(bins)) {
+		fprintf(stderr, "%d is not a power of two\n", bins);
+		exit(1);
+	}
 
 //   if (!gFFTBitTable)
 //      setup(bins, );
 
-   if (InverseTransform)
-      angle_numerator = -angle_numerator;
+	if (InverseTransform)
+		angle_numerator = -angle_numerator;
 
-   NumBits = NumberOfBitsNeeded(bins);
+	NumBits = NumberOfBitsNeeded(bins);
 
-   /*
-    **   Do simultaneous data copy and bit-reversal ordering into outputs...
-    */
+	/*
+	 **   Do simultaneous data copy and bit-reversal ordering into outputs...
+	 */
 
-   for (i = 0; i < bins; i++) {
-      j = FastReverseBits(i, NumBits);
-      RealOut[j] = RealIn[i];
-      ImagOut[j] = (ImagIn == NULL) ? 0.0 : ImagIn[i];
-   }
+	for (i = 0; i < bins; i++) {
+		j = FastReverseBits(i, NumBits);
+		RealOut[j] = RealIn[i];
+		ImagOut[j] = (ImagIn == NULL) ? 0.0 : ImagIn[i];
+	}
 
-   /*
-    **   Do the FFT itself...
-    */
+	/*
+	 **   Do the FFT itself...
+	 */
 
-   BlockEnd = 1;
-   for (BlockSize = 2; BlockSize <= bins; BlockSize <<= 1) {
+	BlockEnd = 1;
+	for (BlockSize = 2; BlockSize <= bins; BlockSize <<= 1) {
 
-      double delta_angle = angle_numerator / (double) BlockSize;
+		double delta_angle = angle_numerator / (double) BlockSize;
 
-      float sm2 = sin(-2 * delta_angle);
-      float sm1 = sin(-delta_angle);
-      float cm2 = cos(-2 * delta_angle);
-      float cm1 = cos(-delta_angle);
-      float w = 2 * cm1;
-      float ar0, ar1, ar2, ai0, ai1, ai2;
+		float sm2 = sin(-2 * delta_angle);
+		float sm1 = sin(-delta_angle);
+		float cm2 = cos(-2 * delta_angle);
+		float cm1 = cos(-delta_angle);
+		float w = 2 * cm1;
+		float ar0, ar1, ar2, ai0, ai1, ai2;
 
-      for (i = 0; i < bins; i += BlockSize) {
-         ar2 = cm2;
-         ar1 = cm1;
+		for (i = 0; i < bins; i += BlockSize) {
+			ar2 = cm2;
+			ar1 = cm1;
 
-         ai2 = sm2;
-         ai1 = sm1;
+			ai2 = sm2;
+			ai1 = sm1;
 
-         for (j = i, n = 0; n < BlockEnd; j++, n++) {
-            ar0 = w * ar1 - ar2;
-            ar2 = ar1;
-            ar1 = ar0;
+			for (j = i, n = 0; n < BlockEnd; j++, n++) {
+				ar0 = w * ar1 - ar2;
+				ar2 = ar1;
+				ar1 = ar0;
 
-            ai0 = w * ai1 - ai2;
-            ai2 = ai1;
-            ai1 = ai0;
+				ai0 = w * ai1 - ai2;
+				ai2 = ai1;
+				ai1 = ai0;
 
-            k = j + BlockEnd;
-            tr = ar0 * RealOut[k] - ai0 * ImagOut[k];
-            ti = ar0 * ImagOut[k] + ai0 * RealOut[k];
+				k = j + BlockEnd;
+				tr = ar0 * RealOut[k] - ai0 * ImagOut[k];
+				ti = ar0 * ImagOut[k] + ai0 * RealOut[k];
 
-            RealOut[k] = RealOut[j] - tr;
-            ImagOut[k] = ImagOut[j] - ti;
+				RealOut[k] = RealOut[j] - tr;
+				ImagOut[k] = ImagOut[j] - ti;
 
-            RealOut[j] += tr;
-            ImagOut[j] += ti;
-         }
-      }
+				RealOut[j] += tr;
+				ImagOut[j] += ti;
+			}
+		}
 
-      BlockEnd = BlockSize;
-   }
+		BlockEnd = BlockSize;
+	}
 
-   /*
-      **   Need to normalize if inverse transform...
-    */
+	/*
+	   **   Need to normalize if inverse transform...
+	 */
 
-   if (InverseTransform) {
-      float denom = (float) bins;
+	if (InverseTransform) {
+		float denom = (float) bins;
 
-      for (i = 0; i < bins; i++) {
-         RealOut[i] /= denom;
-         ImagOut[i] /= denom;
-      }
-   }
+		for (i = 0; i < bins; i++) {
+			RealOut[i] /= denom;
+			ImagOut[i] /= denom;
+		}
+	}
 }
 
 /*
@@ -215,57 +209,56 @@ void ofxFftBasic::FFT(int bins, bool InverseTransform, float *RealIn, float *Ima
  * i4  <->  imag[n/2-i]
  */
 
-void ofxFftBasic::RealFFT(int bins, float *RealIn, float *RealOut, float *ImagOut)
-{
-   int Half = bins / 2;
-   int i;
+void ofxFftBasic::RealFFT(int bins, float *RealIn, float *RealOut, float *ImagOut) {
+	int Half = bins / 2;
+	int i;
 
-   float theta = PI / Half;
+	float theta = PI / Half;
 
-   float *tmpReal = new float[Half];
-   float *tmpImag = new float[Half];
+	float *tmpReal = new float[Half];
+	float *tmpImag = new float[Half];
 
-   for (i = 0; i < Half; i++) {
-      tmpReal[i] = RealIn[2 * i];
-      tmpImag[i] = RealIn[2 * i + 1];
-   }
+	for (i = 0; i < Half; i++) {
+		tmpReal[i] = RealIn[2 * i];
+		tmpImag[i] = RealIn[2 * i + 1];
+	}
 
-   FFT(Half, 0, tmpReal, tmpImag, RealOut, ImagOut);
+	FFT(Half, 0, tmpReal, tmpImag, RealOut, ImagOut);
 
-   float wtemp = float (sin(0.5 * theta));
+	float wtemp = float (sin(0.5 * theta));
 
-   float wpr = -2.0 * wtemp * wtemp;
-   float wpi = float (sin(theta));
-   float wr = 1.0 + wpr;
-   float wi = wpi;
+	float wpr = -2.0 * wtemp * wtemp;
+	float wpi = float (sin(theta));
+	float wr = 1.0 + wpr;
+	float wi = wpi;
 
-   int i3;
+	int i3;
 
-   float h1r, h1i, h2r, h2i;
+	float h1r, h1i, h2r, h2i;
 
-   for (i = 1; i < Half / 2; i++) {
+	for (i = 1; i < Half / 2; i++) {
 
-      i3 = Half - i;
+		i3 = Half - i;
 
-      h1r = 0.5 * (RealOut[i] + RealOut[i3]);
-      h1i = 0.5 * (ImagOut[i] - ImagOut[i3]);
-      h2r = 0.5 * (ImagOut[i] + ImagOut[i3]);
-      h2i = -0.5 * (RealOut[i] - RealOut[i3]);
+		h1r = 0.5 * (RealOut[i] + RealOut[i3]);
+		h1i = 0.5 * (ImagOut[i] - ImagOut[i3]);
+		h2r = 0.5 * (ImagOut[i] + ImagOut[i3]);
+		h2i = -0.5 * (RealOut[i] - RealOut[i3]);
 
-      RealOut[i] = h1r + wr * h2r - wi * h2i;
-      ImagOut[i] = h1i + wr * h2i + wi * h2r;
-      RealOut[i3] = h1r - wr * h2r + wi * h2i;
-      ImagOut[i3] = -h1i + wr * h2i + wi * h2r;
+		RealOut[i] = h1r + wr * h2r - wi * h2i;
+		ImagOut[i] = h1i + wr * h2i + wi * h2r;
+		RealOut[i3] = h1r - wr * h2r + wi * h2i;
+		ImagOut[i3] = -h1i + wr * h2i + wi * h2r;
 
-      wr = (wtemp = wr) * wpr - wi * wpi + wr;
-      wi = wi * wpr + wtemp * wpi + wi;
-   }
+		wr = (wtemp = wr) * wpr - wi * wpi + wr;
+		wi = wi * wpr + wtemp * wpi + wi;
+	}
 
-   RealOut[0] = (h1r = RealOut[0]) + ImagOut[0];
-   ImagOut[0] = h1r - ImagOut[0];
+	RealOut[0] = (h1r = RealOut[0]) + ImagOut[0];
+	ImagOut[0] = h1r - ImagOut[0];
 
-   delete[]tmpReal;
-   delete[]tmpImag;
+	delete[]tmpReal;
+	delete[]tmpImag;
 }
 
 /*
@@ -279,178 +272,176 @@ void ofxFftBasic::RealFFT(int bins, float *RealIn, float *RealOut, float *ImagOu
  * of its code.
  */
 
-void ofxFftBasic::FastPowerSpectrum(int bins, float *input, float *output)
-{
-   int Half = bins / 2;
-   int i;
+void ofxFftBasic::FastPowerSpectrum(int bins, float *input, float *output) {
+	int Half = bins / 2;
+	int i;
 
-   float theta = PI / Half;
+	float theta = PI / Half;
 
-   float *tmpReal = new float[Half];
-   float *tmpImag = new float[Half];
-   float *RealOut = new float[Half];
-   float *ImagOut = new float[Half];
+	float *tmpReal = new float[Half];
+	float *tmpImag = new float[Half];
+	float *RealOut = new float[Half];
+	float *ImagOut = new float[Half];
 
-   for (i = 0; i < Half; i++) {
-      tmpReal[i] = input[2 * i];
-      tmpImag[i] = input[2 * i + 1];
-   }
+	for (i = 0; i < Half; i++) {
+		tmpReal[i] = input[2 * i];
+		tmpImag[i] = input[2 * i + 1];
+	}
 
-   FFT(Half, 0, tmpReal, tmpImag, RealOut, ImagOut);
+	FFT(Half, 0, tmpReal, tmpImag, RealOut, ImagOut);
 
-   float wtemp = float (sin(0.5 * theta));
+	float wtemp = float (sin(0.5 * theta));
 
-   float wpr = -2.0 * wtemp * wtemp;
-   float wpi = float (sin(theta));
-   float wr = 1.0 + wpr;
-   float wi = wpi;
+	float wpr = -2.0 * wtemp * wtemp;
+	float wpi = float (sin(theta));
+	float wr = 1.0 + wpr;
+	float wi = wpi;
 
-   int i3;
+	int i3;
 
-   float h1r, h1i, h2r, h2i, rt, it;
-   //float total=0;
+	float h1r, h1i, h2r, h2i, rt, it;
+	//float total=0;
 
-   for (i = 1; i < Half / 2; i++) {
+	for (i = 1; i < Half / 2; i++) {
 
-      i3 = Half - i;
+		i3 = Half - i;
 
-      h1r = 0.5 * (RealOut[i] + RealOut[i3]);
-      h1i = 0.5 * (ImagOut[i] - ImagOut[i3]);
-      h2r = 0.5 * (ImagOut[i] + ImagOut[i3]);
-      h2i = -0.5 * (RealOut[i] - RealOut[i3]);
+		h1r = 0.5 * (RealOut[i] + RealOut[i3]);
+		h1i = 0.5 * (ImagOut[i] - ImagOut[i3]);
+		h2r = 0.5 * (ImagOut[i] + ImagOut[i3]);
+		h2i = -0.5 * (RealOut[i] - RealOut[i3]);
 
-      rt = h1r + wr * h2r - wi * h2i; //printf("Realout%i = %f",i,rt);total+=fabs(rt);
-      it = h1i + wr * h2i + wi * h2r; // printf("  Imageout%i = %f\n",i,it);
+		rt = h1r + wr * h2r - wi * h2i; //printf("Realout%i = %f",i,rt);total+=fabs(rt);
+		it = h1i + wr * h2i + wi * h2r; // printf("  Imageout%i = %f\n",i,it);
 
-      output[i] = rt * rt + it * it;
+		output[i] = rt * rt + it * it;
 
-      rt = h1r - wr * h2r + wi * h2i;
-      it = -h1i + wr * h2i + wi * h2r;
+		rt = h1r - wr * h2r + wi * h2i;
+		it = -h1i + wr * h2i + wi * h2r;
 
-      output[i3] = rt * rt + it * it;
+		output[i3] = rt * rt + it * it;
 
-      wr = (wtemp = wr) * wpr - wi * wpi + wr;
-      wi = wi * wpr + wtemp * wpi + wi;
-   }
+		wr = (wtemp = wr) * wpr - wi * wpi + wr;
+		wi = wi * wpr + wtemp * wpi + wi;
+	}
 
-   rt = (h1r = RealOut[0]) + ImagOut[0];
-   it = h1r - ImagOut[0];
-   output[0] = rt * rt + it * it;
+	rt = (h1r = RealOut[0]) + ImagOut[0];
+	it = h1r - ImagOut[0];
+	output[0] = rt * rt + it * it;
 
-   rt = RealOut[Half / 2];
-   it = ImagOut[Half / 2];
-   output[Half / 2] = rt * rt + it * it;
+	rt = RealOut[Half / 2];
+	it = ImagOut[Half / 2];
+	output[Half / 2] = rt * rt + it * it;
 
-   delete[]tmpReal;
-   delete[]tmpImag;
-   delete[]RealOut;
-   delete[]ImagOut;
+	delete[]tmpReal;
+	delete[]tmpImag;
+	delete[]RealOut;
+	delete[]ImagOut;
 }
 
 
 /* destructor */
 ofxFftBasic::~ofxFftBasic() {
 
-    // delete the column arrays
-    for (int b = 1; b <= MaxFastBits; b++) {
-        delete [] gFFTBitTable[b - 1];
-    }
+	// delete the column arrays
+	for (int b = 1; b <= MaxFastBits; b++) {
+		delete [] gFFTBitTable[b - 1];
+	}
 
-   // and then delete the row pointer array itself:
- 	delete [] gFFTBitTable;
+	// and then delete the row pointer array itself:
+	delete [] gFFTBitTable;
 
- 	gFFTBitTable = NULL;
+	gFFTBitTable = NULL;
 }
 
-void ofxFftBasic::fft(float *input, float *output)
-{
-    if(!ready) {
+void ofxFftBasic::fft(float *input, float *output) {
+	if (!ready) {
 		ofLog(OF_LOG_ERROR, "setup() must be called before fft()\n");
 		return;
 	}
 
-    /* processing variables*/
-    float *in_real  = new float[bins];
-    float *in_img   = new float[bins];
-    float *out_real = new float[bins];
-    float *out_img  = new float[bins];
+	/* processing variables*/
+	float *in_real  = new float[bins];
+	float *in_img   = new float[bins];
+	float *out_real = new float[bins];
+	float *out_img  = new float[bins];
 
 	for (int i = 0; i < bins; i++) {
-      in_real[i] = input[i];
+		in_real[i] = input[i];
 	}
 
-   	runWindow(in_real);
+	runWindow(in_real);
 	RealFFT(bins, in_real, out_real, out_img);
 
-   	float normalizer = 2. / windowSum;
+	float normalizer = 2. / windowSum;
 
-	for(int i = 1; i < halfBins; i++) {
-        output[i] = cartesianToAmplitude(out_real[i], out_img[i]) * normalizer;
+	for (int i = 1; i < this->bins; i++) {
+		output[i] = cartesianToAmplitude(out_real[i], out_img[i]) * normalizer;
 	}
 
-   delete [] in_real;
-   delete [] in_img;
-   delete [] out_real;
-   delete [] out_img;
+	delete [] in_real;
+	delete [] in_img;
+	delete [] out_real;
+	delete [] out_img;
 }
 
 /* Calculate the power spectrum */
-void ofxFftBasic::powerSpectrum(int start, int half, float *data, int bins,float *magnitude,float *phase, float *power, float *avg_power) {
-    if(!ready) {
+void ofxFftBasic::powerSpectrum(int start, int half, float *data, int bins, float *magnitude, float *phase, float *power, float *avg_power) {
+	if (!ready) {
 		ofLog(OF_LOG_ERROR, "setup() must be called first!\n");
 		return;
 	}
 
-    int i;
-    float total_power = 0.0f;
+	int i;
+	float total_power = 0.0f;
 
-    /* processing variables*/
-    float *in_real = new float[bins];
-    float *in_img = new float[bins];
-    float *out_real = new float[bins];
-    float *out_img = new float[bins];
+	/* processing variables*/
+	float *in_real = new float[bins];
+	float *in_img = new float[bins];
+	float *out_real = new float[bins];
+	float *out_img = new float[bins];
 
-    for (i = 0; i < bins; i++) {
-      in_real[i] = data[start + i];
-    }
+	for (i = 0; i < bins; i++) {
+		in_real[i] = data[start + i];
+	}
 
-   	runWindow(in_real);
+	runWindow(in_real);
 	RealFFT(bins, in_real, out_real, out_img);
 
-    for (i = 0; i < half; i++) {
-        /* compute power */
-        power[i] = out_real[i]*out_real[i] + out_img[i]*out_img[i];
-        total_power += power[i];
-        /* compute magnitude and phase */
-        magnitude[i] = 2.0*sqrt(power[i]);
-        phase[i] = atan2(out_img[i],out_real[i]);
-    }
+	for (i = 0; i < half; i++) {
+		/* compute power */
+		power[i] = out_real[i] * out_real[i] + out_img[i] * out_img[i];
+		total_power += power[i];
+		/* compute magnitude and phase */
+		magnitude[i] = 2.0 * sqrt(power[i]);
+		phase[i] = atan2(out_img[i], out_real[i]);
+	}
 
-   /* calculate average power */
-   *(avg_power) = total_power / (float) half;
+	/* calculate average power */
+	*(avg_power) = total_power / (float) half;
 
-   delete[]in_real;
-   delete[]in_img;
-   delete[]out_real;
-   delete[]out_img;
+	delete[]in_real;
+	delete[]in_img;
+	delete[]out_real;
+	delete[]out_img;
 }
 
-void ofxFftBasic::inversePowerSpectrum(int start, int half, int bins, float *output,float *magnitude,float *phase) {
-    if(!ready) {
+void ofxFftBasic::inversePowerSpectrum(int start, int half, int bins, float *output, float *magnitude, float *phase) {
+	if (!ready) {
 		ofLog(OF_LOG_ERROR, "setup() must be called first!\n");
 		return;
 	}
 
 	/* processing variables*/
-   float *in_real = new float[bins];
-   float *in_img = new float[bins];
-   float *out_real = new float[bins];
-   float *out_img = new float[bins];
+	float *in_real = new float[bins];
+	float *in_img = new float[bins];
+	float *out_real = new float[bins];
+	float *out_img = new float[bins];
 
 	/* get real and imag part */
 	for (int i = 0; i < half; i++) {
-		in_real[i] = magnitude[i]*cos(phase[i]);
-		in_img[i]  = magnitude[i]*sin(phase[i]);
+		in_real[i] = magnitude[i] * cos(phase[i]);
+		in_img[i]  = magnitude[i] * sin(phase[i]);
 	}
 
 	/* zero negative frequencies */
@@ -460,14 +451,14 @@ void ofxFftBasic::inversePowerSpectrum(int start, int half, int bins, float *out
 	}
 
 	FFT(bins, 1, in_real, in_img, out_real, out_img); // second parameter indicates inverse transform
-   	runWindow(out_real);
+	runWindow(out_real);
 
 	for (int i = 0; i < bins; i++) {
 		output[start + i] += out_real[i];
 	}
 
-   delete[]in_real;
-   delete[]in_img;
-   delete[]out_real;
-   delete[]out_img;
+	delete[]in_real;
+	delete[]in_img;
+	delete[]out_real;
+	delete[]out_img;
 }
