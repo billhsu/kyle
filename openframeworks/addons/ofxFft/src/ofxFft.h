@@ -59,9 +59,11 @@ protected:
 	// time domain data and methods
 	fftWindowType windowType;
 	float windowSum;
-	float *window, *signal;
+	float *window;
 
-	bool signalReady;
+	bool signalNormalized;
+	float *signal;
+
 	void setSignal(float* signal);
 	void setWindowType(fftWindowType windowType);
 	inline void runWindow(float* signal) {
@@ -72,16 +74,24 @@ protected:
 
 	// frequency domain data and methods
 	int signalSize, bins;
-	float *real, *imag, *amplitude, *phase;
 
+	float *real, *imag;
+	bool cartesianUpdated, cartesianNormalized;
+	void checkCartesian();
+	void updateCartesian();
+	void normalizeCartesian();
 	void setReal(float* real);
 	void setImaginary(float* imag);
+
+	float *amplitude, *phase;
+	bool polarUpdated, polarNormalized;
+	void checkPolar();
+	void updatePolar();
+	void normalizePolar();
 	void setAmplitude(float* amplitude);
 	void setPhase(float* phase);
 
-	bool polarReady, cartesianReady;
-	void updateCartesian();
-	void updatePolar();
+	void clearUpdates();
 
 	inline float cartesianToAmplitude(float x, float y) {
 		return sqrtf(x * x + y * y);

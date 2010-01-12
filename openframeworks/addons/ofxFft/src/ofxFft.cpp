@@ -18,15 +18,18 @@ void ofxFft::setup(int signalSize, fftWindowType windowType) {
 	this->signalSize = signalSize;
 	this->bins = signalSize / 2;
 
+	signalNormalized = true;
 	signal = new float[signalSize];
+
+	cartesianUpdated = true;
+	cartesianNormalized = true;
 	real = new float[bins];
 	imag = new float[bins];
+
+	polarUpdated = true;
+	polarNormalized = true;
 	amplitude = new float[bins];
 	phase = new float[bins];
-
-	polarReady = false;
-	cartesianReady = false;
-	signalReady = true;
 
 	clear();
 
@@ -132,60 +135,93 @@ void ofxFft::setPhase(float* phase) {
 }
 
 float* ofxFft::getSignal() {
-	if(!signalReady) {
+	if(!signalNormalized) {
 		float normalizer = 1. / 2;
 		for (int i = 0; i < signalSize; i++)
 			signal[i] *= normalizer;
-		signalReady = true;
+		signalNormalized = true;
 	}
 	return signal;
 }
 
-float* ofxFft::getReal() {
-	if(!cartesianReady)
+void ofxFft::checkCartesian() {
+	if(!cartesianUpdated)
 		updateCartesian();
+	if(!cartesianNormalized)
+		normalizeCartesian();
+}
+
+float* ofxFft::getReal() {
+	checkCartesian();
 	return real;
 }
 
 float* ofxFft::getImaginary() {
-	if(!cartesianReady)
-		updateCartesian();
+	checkCartesian();
 	return imag;
 }
 
-float* ofxFft::getAmplitude() {
-	if(!polarReady)
+void ofxFft::checkPolar() {
+	if(!polarUpdated)
 		updatePolar();
+	if(!polarNormalized)
+		normalizePolar();
+}
+
+float* ofxFft::getAmplitude() {
+	checkPolar();
 	return amplitude;
 }
 
 float* ofxFft::getPhase() {
-	if(!polarReady)
-		updatePolar();
+	checkPolar();
 	return phase;
 }
 
 void ofxFft::updateCartesian() {
 	for(int i = 0; i < bins; i++) {
-		real[i] = cos(phase[i]) * amplitude[i];
-		phase[i] = sin(phase[i]) * amplitude[i];
+		real[i] = cosf(phase[i]) * amplitude[i];
+		imag[i] = sinf(phase[i]) * amplitude[i];
 	}
-	cartesianReady = true;
+	cartesianUpdated = true;
+	cartesianNormalized = polarNormalized;
+}
+
+void ofxFft::normalizeCartesian() {
+	float normalizer = 2. / windowSum;
+	for(int i = 0; i < bins; i++) {
+		real[i] *= normalizer;
+		imag[i] *= normalizer;
+	}
+	cartesianNormalized = true;
 }
 
 void ofxFft::updatePolar() {
-	float normalizer = 2. / windowSum;
 	for(int i = 0; i < bins; i++) {
-		amplitude[i] = cartesianToAmplitude(real[i], imag[i]) * normalizer;
+		amplitude[i] = cartesianToAmplitude(real[i], imag[i]);
 		phase[i] = cartesianToPhase(real[i], imag[i]);
 	}
-	polarReady = true;
+	polarUpdated = true;
+	polarNormalized = cartesianNormalized;
+}
+
+void ofxFft::normalizePolar() {
+	float normalizer = 2. / windowSum;
+	for(int i = 0; i < bins; i++)
+		amplitude[i] *= normalizer;
+	polarNormalized = true;
+}
+
+void ofxFft::clearUpdates() {
+	cartesianUpdated = false;
+	polarUpdated = false;
+	cartesianNormalized = false;
+	polarNormalized = false;
+	signalNormalized = false;
 }
 
 float* ofxFft::fft(float* input, fftMode mode) {
 	executeFft(input);
-	cartesianReady = true;
-	polarReady = false;
 	if (mode == OF_FFT_CARTESIAN)
 		return getReal();
 	else if (mode == OF_FFT_POLAR)
@@ -194,7 +230,6 @@ float* ofxFft::fft(float* input, fftMode mode) {
 
 float* ofxFft::ifft(float* input) {
 	executeIfft(input);
-	signalReady = false;
 	return getSignal();
 }
 
@@ -207,6 +242,5 @@ float* ofxFft::ifft(float* a, float* b, fftMode mode) {
 	} else if (mode == OF_FFT_CARTESIAN) {
 		executeIfft(a, b);
 	}
-	signalReady = false;
 	return getSignal();
 }
