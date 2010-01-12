@@ -54,6 +54,8 @@ protected:
 	virtual void executeIfft(float* input) = 0;
 	virtual void executeIfft(float* real, float* imag) = 0;
 
+	void clear();
+
 	// time domain data and methods
 	fftWindowType windowType;
 	float windowSum;
