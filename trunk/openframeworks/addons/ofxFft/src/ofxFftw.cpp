@@ -29,10 +29,12 @@ void ofxFftw::executeFft(float* input) {
 	fftwf_execute(fftPlan);
 	// explanation of halfcomplex format:
 	// http://www.fftw.org/fftw3_doc/The-Halfcomplex_002dformat-DFT.html
+	clearUpdates();
 	setReal(fftOut); // will only copy the first half
 	imag[0] = 0;
 	for (int i = 1; i < bins; i++)
 		imag[i] = fftOut[signalSize - i];
+	cartesianUpdated = true;
 }
 
 void ofxFftw::executeIfft(float* input) {
@@ -41,6 +43,7 @@ void ofxFftw::executeIfft(float* input) {
 	// assume the phase is 0
 	memset(&(ifftIn[bins]), 0, sizeof(float) * bins);
 	fftwf_execute(ifftPlan);
+	clearUpdates();
 	setSignal(ifftOut);
 }
 
