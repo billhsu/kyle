@@ -28,6 +28,8 @@ void ofxFft::setup(int signalSize, fftWindowType windowType) {
 	cartesianReady = false;
 	signalReady = true;
 
+	clear();
+
 	window = new float[signalSize];
 	setWindowType(windowType);
 }
@@ -101,6 +103,14 @@ float ofxFft::getHeight() {
 	return bins / 2;
 }
 
+void ofxFft::clear() {
+	memset(signal, 0, sizeof(float) * signalSize);
+	memset(real, 0, sizeof(float) * bins);
+	memset(imag, 0, sizeof(float) * bins);
+	memset(amplitude, 0, sizeof(float) * bins);
+	memset(phase, 0, sizeof(float) * bins);
+}
+
 void ofxFft::setSignal(float* signal) {
 	memcpy(this->signal, signal, sizeof(float) * signalSize);
 }
@@ -123,8 +133,8 @@ void ofxFft::setPhase(float* phase) {
 
 float* ofxFft::getSignal() {
 	if(!signalReady) {
-		float normalizer = 2. / windowSum;
-		for (int i = 0; i < bins; i++)
+		float normalizer = 1. / 2;
+		for (int i = 0; i < signalSize; i++)
 			signal[i] *= normalizer;
 		signalReady = true;
 	}
