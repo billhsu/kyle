@@ -1,7 +1,9 @@
 /**********************************************************************
 
-  fft.cpp
+	This is a truncated version of a free FFT implementation, which
+	originally held the following notes.
 
+	- - --
 
   This class is a C++ wrapper for original code
   written by Dominic Mazzoni in September 2000
@@ -31,9 +33,6 @@
 **********************************************************************/
 
 #include "ofxFftBasic.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
 
 int **gFFTBitTable = NULL;
 const int MaxFastBits = 16;
@@ -41,10 +40,8 @@ const int MaxFastBits = 16;
 int IsPowerOfTwo(int x) {
 	if (x < 2)
 		return false;
-
 	if (x & (x - 1))             /* Thanks to 'byang' for this cute trick! */
 		return false;
-
 	return true;
 }
 
@@ -52,7 +49,7 @@ int NumberOfBitsNeeded(int PowerOfTwo) {
 	int i;
 
 	if (PowerOfTwo < 2) {
-		fprintf(stderr, "Error: FFT called with size %d\n", PowerOfTwo);
+		cout << "Error: FFT called with size " << PowerOfTwo << endl;
 		exit(1);
 	}
 
@@ -85,35 +82,26 @@ void ofxFftBasic::FFT(int bins, bool InverseTransform, float *RealIn, float *Ima
 	int BlockSize, BlockEnd;
 
 	double angle_numerator = 2.0 * PI;
-	float tr, ti;                /* temp real, temp imaginary */
+	float tr, ti;
 
 	if (!IsPowerOfTwo(bins)) {
-		fprintf(stderr, "%d is not a power of two\n", bins);
-		exit(1);
+		cout << bins << " is not a power of two." << endl;
+		return;
 	}
-
-//   if (!gFFTBitTable)
-//      setup(bins, );
 
 	if (InverseTransform)
 		angle_numerator = -angle_numerator;
 
 	NumBits = NumberOfBitsNeeded(bins);
 
-	/*
-	 **   Do simultaneous data copy and bit-reversal ordering into outputs...
-	 */
-
+	// Do simultaneous data copy and bit-reversal ordering into outputs...
 	for (i = 0; i < bins; i++) {
 		j = FastReverseBits(i, NumBits);
 		RealOut[j] = RealIn[i];
 		ImagOut[j] = (ImagIn == NULL) ? 0.0 : ImagIn[i];
 	}
 
-	/*
-	 **   Do the FFT itself...
-	 */
-
+	// Do the FFT itself...
 	BlockEnd = 1;
 	for (BlockSize = 2; BlockSize <= bins; BlockSize <<= 1) {
 
@@ -155,19 +143,6 @@ void ofxFftBasic::FFT(int bins, bool InverseTransform, float *RealIn, float *Ima
 		}
 
 		BlockEnd = BlockSize;
-	}
-
-	/*
-	   **   Need to normalize if inverse transform...
-	 */
-
-	if (InverseTransform) {
-		float denom = (float) bins;
-
-		for (i = 0; i < bins; i++) {
-			RealOut[i] /= denom;
-			ImagOut[i] /= denom;
-		}
 	}
 }
 
@@ -238,152 +213,6 @@ void ofxFftBasic::RealFFT(int bins, float *RealIn, float *RealOut, float *ImagOu
 	delete[]tmpImag;
 }
 
-/*
- * PowerSpectrum
- *
- * This function computes the same as RealFFT, above, but
- * adds the squares of the real and imaginary part of each
- * coefficient
- *
- * For speed, it does not call RealFFT, but duplicates some
- * of its code.
- */
-
-void ofxFftBasic::FastPowerSpectrum(int bins, float *input, float *output) {
-	int Half = bins / 2;
-	int i;
-
-	float theta = PI / Half;
-
-	float *tmpReal = new float[Half];
-	float *tmpImag = new float[Half];
-	float *RealOut = new float[Half];
-	float *ImagOut = new float[Half];
-
-	for (i = 0; i < Half; i++) {
-		tmpReal[i] = input[2 * i];
-		tmpImag[i] = input[2 * i + 1];
-	}
-
-	FFT(Half, 0, tmpReal, tmpImag, RealOut, ImagOut);
-
-	float wtemp = float (sin(0.5 * theta));
-
-	float wpr = -2.0 * wtemp * wtemp;
-	float wpi = float (sin(theta));
-	float wr = 1.0 + wpr;
-	float wi = wpi;
-
-	int i3;
-
-	float h1r, h1i, h2r, h2i, rt, it;
-	//float total=0;
-
-	for (i = 1; i < Half / 2; i++) {
-
-		i3 = Half - i;
-
-		h1r = 0.5 * (RealOut[i] + RealOut[i3]);
-		h1i = 0.5 * (ImagOut[i] - ImagOut[i3]);
-		h2r = 0.5 * (ImagOut[i] + ImagOut[i3]);
-		h2i = -0.5 * (RealOut[i] - RealOut[i3]);
-
-		rt = h1r + wr * h2r - wi * h2i; //printf("Realout%i = %f",i,rt);total+=fabs(rt);
-		it = h1i + wr * h2i + wi * h2r; // printf("  Imageout%i = %f\n",i,it);
-
-		output[i] = rt * rt + it * it;
-
-		rt = h1r - wr * h2r + wi * h2i;
-		it = -h1i + wr * h2i + wi * h2r;
-
-		output[i3] = rt * rt + it * it;
-
-		wr = (wtemp = wr) * wpr - wi * wpi + wr;
-		wi = wi * wpr + wtemp * wpi + wi;
-	}
-
-	rt = (h1r = RealOut[0]) + ImagOut[0];
-	it = h1r - ImagOut[0];
-	output[0] = rt * rt + it * it;
-
-	rt = RealOut[Half / 2];
-	it = ImagOut[Half / 2];
-	output[Half / 2] = rt * rt + it * it;
-
-	delete[]tmpReal;
-	delete[]tmpImag;
-	delete[]RealOut;
-	delete[]ImagOut;
-}
-
-/* Calculate the power spectrum */
-void ofxFftBasic::powerSpectrum(int start, int half, float *data, int bins, float *magnitude, float *phase, float *power, float *avg_power) {
-	int i;
-	float total_power = 0.0f;
-
-	/* processing variables*/
-	float *in_real = new float[bins];
-	float *in_img = new float[bins];
-	float *out_real = new float[bins];
-	float *out_img = new float[bins];
-
-	for (i = 0; i < bins; i++) {
-		in_real[i] = data[start + i];
-	}
-
-	runWindow(in_real);
-	RealFFT(bins, in_real, out_real, out_img);
-
-	for (i = 0; i < half; i++) {
-		/* compute power */
-		power[i] = out_real[i] * out_real[i] + out_img[i] * out_img[i];
-		total_power += power[i];
-		/* compute magnitude and phase */
-		magnitude[i] = 2.0 * sqrt(power[i]);
-		phase[i] = atan2(out_img[i], out_real[i]);
-	}
-
-	/* calculate average power */
-	*(avg_power) = total_power / (float) half;
-
-	delete[]in_real;
-	delete[]in_img;
-	delete[]out_real;
-	delete[]out_img;
-}
-
-void ofxFftBasic::inversePowerSpectrum(int start, int half, int bins, float *output, float *magnitude, float *phase) {
-	/* processing variables*/
-	float *in_real = new float[bins];
-	float *in_img = new float[bins];
-	float *out_real = new float[bins];
-	float *out_img = new float[bins];
-
-	/* get real and imag part */
-	for (int i = 0; i < half; i++) {
-		in_real[i] = magnitude[i] * cos(phase[i]);
-		in_img[i]  = magnitude[i] * sin(phase[i]);
-	}
-
-	/* zero negative frequencies */
-	for (int i = half; i < bins; i++) {
-		in_real[i] = 0.0;
-		in_img[i] = 0.0;
-	}
-
-	FFT(bins, 1, in_real, in_img, out_real, out_img); // second parameter indicates inverse transform
-	runWindow(out_real);
-
-	for (int i = 0; i < bins; i++) {
-		output[start + i] += out_real[i];
-	}
-
-	delete[]in_real;
-	delete[]in_img;
-	delete[]out_real;
-	delete[]out_img;
-}
-
 void ofxFftBasic::setup(int signalSize, fftWindowType windowType) {
 	ofxFft::setup(signalSize, windowType);
 
@@ -395,27 +224,28 @@ void ofxFftBasic::setup(int signalSize, fftWindowType windowType) {
 			gFFTBitTable[b - 1][i] = ReverseBits(i, b);
 		len <<= 1;
 	}
+
+	windowedSignal = new float[signalSize];
 }
 
 ofxFftBasic::~ofxFftBasic() {
 	// delete the column arrays
-	for (int b = 1; b <= MaxFastBits; b++) {
-		delete [] gFFTBitTable[b - 1];
-	}
-
-	// and then delete the row pointer array itself:
+	for (int b = 0; b < MaxFastBits; b++)
+		delete [] gFFTBitTable[b];
 	delete [] gFFTBitTable;
 
-	gFFTBitTable = NULL;
+	delete [] windowedSignal;
 }
 
 void ofxFftBasic::executeFft() {
-	// should be changed so it operates on a copy
-	// instead of destroying the internal signal
-	runWindow(signal);
-	RealFFT(signalSize, signal, real, imag);
-	imag[0] = 0;
+	memcpy(windowedSignal, signal, sizeof(float) * signalSize);
+	runWindow(windowedSignal);
+	RealFFT(signalSize, windowedSignal, real, imag);
+	cartesianUpdated = true;
 }
 
 void ofxFftBasic::executeIfft() {
+	FFT(signalSize, true, real, imag, signal, windowedSignal);
+	runInverseWindow(signal);
+	signalUpdated = true;
 }

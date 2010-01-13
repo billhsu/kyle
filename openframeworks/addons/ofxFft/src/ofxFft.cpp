@@ -161,7 +161,7 @@ void ofxFft::updateSignal() {
 	prepareCartesian();
 	executeIfft();
 	signalUpdated = true;
-	signalNormalized = false; // this remains to be seen
+	signalNormalized = false;
 }
 
 void ofxFft::normalizeSignal() {

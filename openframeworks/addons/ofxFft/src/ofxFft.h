@@ -39,8 +39,6 @@ public:
 	float* getImaginary();
 	float* getAmplitude();
 	float* getPhase();
-	// float* getPowerSpectrum();
-	// float* getPower();
 
 	// ofBaseDraws
 	void draw(float x, float y);
