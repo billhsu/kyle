@@ -12,7 +12,6 @@ private:
 	float *fftIn, *fftOut, *ifftIn, *ifftOut;
 	fftwf_plan fftPlan, ifftPlan;
 protected:
-	void executeFft(float* input);
-	void executeIfft(float* input);
-	void executeIfft(float* real, float* imag);
+	void executeFft();
+	void executeIfft();
 };

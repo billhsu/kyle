@@ -26,8 +26,14 @@ public:
 		fftImplementation implementation = OF_FFT_BASIC);
 	virtual ~ofxFft();
 
-	// forward fft
-	float* fft(float* input, fftMode mode = OF_FFT_POLAR);
+	void setSignal(float* signal);
+	void setCartesian(float* real, float* imag = NULL);
+	void setPolar(float* amplitude, float* phase = NULL);
+
+	int getSignalSize();
+	float* getSignal();
+	void clampSignal();
+
 	int getBinSize();
 	float* getReal();
 	float* getImaginary();
@@ -35,12 +41,6 @@ public:
 	float* getPhase();
 	// float* getPowerSpectrum();
 	// float* getPower();
-
-	// inverse fft
-	float* ifft(float* input);
-	float* ifft(float* a, float* b, fftMode mode = OF_FFT_POLAR);
-	int getSignalSize();
-	float* getSignal();
 
 	// ofBaseDraws
 	void draw(float x, float y);
@@ -50,46 +50,55 @@ public:
 
 protected:
 	virtual void setup(int bins, fftWindowType windowType);
-	virtual void executeFft(float* input) = 0;
-	virtual void executeIfft(float* input) = 0;
-	virtual void executeIfft(float* real, float* imag) = 0;
+	virtual void executeFft() = 0;
+	virtual void executeIfft() = 0;
 
 	void clear();
 
 	// time domain data and methods
 	fftWindowType windowType;
 	float windowSum;
-	float *window;
+	float *window, *inverseWindow;
 
-	bool signalNormalized;
-	float *signal;
-
-	void setSignal(float* signal);
 	void setWindowType(fftWindowType windowType);
+
 	inline void runWindow(float* signal) {
 		if(windowType != OF_FFT_RECTANGULAR)
 			for(int i = 0; i < signalSize; i++)
 				signal[i] *= window[i];
 	}
 
+	inline void runInverseWindow(float* signal) {
+		if(windowType != OF_FFT_RECTANGULAR)
+			for(int i = 0; i < signalSize; i++)
+				signal[i] *= inverseWindow[i];
+	}
+
+	float *signal;
+	bool signalUpdated, signalNormalized;
+	void prepareSignal();
+	void updateSignal();
+	void normalizeSignal();
+	void copySignal(float* signal);
+
 	// frequency domain data and methods
 	int signalSize, bins;
 
 	float *real, *imag;
 	bool cartesianUpdated, cartesianNormalized;
-	void checkCartesian();
+	void prepareCartesian();
 	void updateCartesian();
 	void normalizeCartesian();
-	void setReal(float* real);
-	void setImaginary(float* imag);
+	void copyReal(float* real);
+	void copyImaginary(float* imag);
 
 	float *amplitude, *phase;
 	bool polarUpdated, polarNormalized;
-	void checkPolar();
+	void preparePolar();
 	void updatePolar();
 	void normalizePolar();
-	void setAmplitude(float* amplitude);
-	void setPhase(float* phase);
+	void copyAmplitude(float* amplitude);
+	void copyPhase(float* phase);
 
 	void clearUpdates();
 
