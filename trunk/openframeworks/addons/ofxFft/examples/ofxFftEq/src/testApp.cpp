@@ -106,13 +106,3 @@ void testApp::keyPressed(int key) {
 		break;
 	}
 }
-
-testApp::~testApp() {
-	//ofSoundStreamStop();
-	delete[] audioInput;
-	delete[] fftOutput;
-	delete[] eqFunction;
-	delete[] eqOutput;
-	delete[] ifftOutput;
-	delete fft;
-}
