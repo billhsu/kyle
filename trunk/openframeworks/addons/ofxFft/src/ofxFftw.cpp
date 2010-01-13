@@ -23,36 +23,27 @@ void ofxFftw::setup(int signalSize, fftWindowType windowType) {
 	                             FFTW_DESTROY_INPUT | FFTW_MEASURE);
 }
 
-void ofxFftw::executeFft(float* input) {
-	memcpy(fftIn, input, sizeof(float) * signalSize);
+void ofxFftw::executeFft() {
+	memcpy(fftIn, signal, sizeof(float) * signalSize);
 	runWindow(fftIn);
 	fftwf_execute(fftPlan);
 	// explanation of halfcomplex format:
 	// http://www.fftw.org/fftw3_doc/The-Halfcomplex_002dformat-DFT.html
-	clearUpdates();
-	setReal(fftOut); // will only copy the first half
+	copyReal(fftOut); // ignores r[n/2]
 	imag[0] = 0;
 	for (int i = 1; i < bins; i++)
 		imag[i] = fftOut[signalSize - i];
 	cartesianUpdated = true;
 }
 
-void ofxFftw::executeIfft(float* input) {
-	// directly copy amplitude as real component
-	memcpy(ifftIn, input, sizeof(float) * bins);
-	// assume the phase is 0
-	memset(&(ifftIn[bins]), 0, sizeof(float) * bins);
-	fftwf_execute(ifftPlan);
-	clearUpdates();
-	setSignal(ifftOut);
-}
-
-void ofxFftw::executeIfft(float* real, float* imag) {
+void ofxFftw::executeIfft() {
 	memcpy(ifftIn, real, sizeof(float) * bins);
-	for (int i = 1; i < signalSize; i++)
+	for (int i = 1; i < bins; i++)
 		ifftIn[signalSize - i] = imag[i];
+	ifftIn[bins] = 0; // because r[n/2] is not stored
 	fftwf_execute(ifftPlan);
-	setSignal(ifftOut);
+	runInverseWindow(ifftOut);
+	copySignal(ifftOut);
 }
 
 ofxFftw::~ofxFftw() {

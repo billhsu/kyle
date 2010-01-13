@@ -409,15 +409,13 @@ ofxFftBasic::~ofxFftBasic() {
 	gFFTBitTable = NULL;
 }
 
-void ofxFftBasic::executeFft(float* input) {
-	setSignal(input);
+void ofxFftBasic::executeFft() {
+	// should be changed so it operates on a copy
+	// instead of destroying the internal signal
 	runWindow(signal);
 	RealFFT(signalSize, signal, real, imag);
 	imag[0] = 0;
 }
 
-void ofxFftBasic::executeIfft(float* input) {
-}
-
-void ofxFftBasic::executeIfft(float* real, float* imag) {
+void ofxFftBasic::executeIfft() {
 }

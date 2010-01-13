@@ -34,6 +34,7 @@ void ofxFft::setup(int signalSize, fftWindowType windowType) {
 	clear();
 
 	window = new float[signalSize];
+	inverseWindow = new float[signalSize];
 	setWindowType(windowType);
 }
 
@@ -69,10 +70,19 @@ void ofxFft::setWindowType(fftWindowType windowType) {
 	windowSum = 0;
 	for(int i = 0; i < signalSize; i++)
 		windowSum += window[i];
+
+	for(int i = 0; i < signalSize; i++)
+		inverseWindow[i] = 1. / window[i];
 }
 
 ofxFft::~ofxFft() {
-	delete[] window, signal, real, imag, amplitude, phase;
+	delete [] signal;
+	delete [] real;
+	delete [] imag;
+	delete [] amplitude;
+	delete [] phase;
+	delete [] window;
+	delete [] inverseWindow;
 }
 
 void ofxFft::draw(float x, float y) {
@@ -114,54 +124,90 @@ void ofxFft::clear() {
 	memset(phase, 0, sizeof(float) * bins);
 }
 
-void ofxFft::setSignal(float* signal) {
+void ofxFft::copySignal(float* signal) {
 	memcpy(this->signal, signal, sizeof(float) * signalSize);
 }
 
-void ofxFft::setReal(float* real) {
+void ofxFft::copyReal(float* real) {
 	memcpy(this->real, real, sizeof(float) * bins);
 }
 
-void ofxFft::setImaginary(float* imag) {
-	memcpy(this->imag, imag, sizeof(float) * bins);
+void ofxFft::copyImaginary(float* imag) {
+	if(imag == NULL)
+		memset(this->imag, 0, sizeof(float) * bins);
+	else
+		memcpy(this->imag, imag, sizeof(float) * bins);
 }
 
-void ofxFft::setAmplitude(float* amplitude) {
+void ofxFft::copyAmplitude(float* amplitude) {
 	memcpy(this->amplitude, amplitude, sizeof(float) * bins);
 }
 
-void ofxFft::setPhase(float* phase) {
-	memcpy(this->phase, phase, sizeof(float) * bins);
+void ofxFft::copyPhase(float* phase) {
+	if(phase == NULL)
+		memset(this->phase, 0, sizeof(float) * bins);
+	else
+		memcpy(this->phase, phase, sizeof(float) * bins);
+}
+
+void ofxFft::prepareSignal() {
+	if(!signalUpdated)
+		updateSignal();
+	if(!signalNormalized)
+		normalizeSignal();
+}
+
+void ofxFft::updateSignal() {
+	prepareCartesian();
+	executeIfft();
+	signalUpdated = true;
+	signalNormalized = false; // this remains to be seen
+}
+
+void ofxFft::normalizeSignal() {
+	float normalizer = (float) windowSum / (2 * signalSize);
+	for (int i = 0; i < signalSize; i++)
+		signal[i] *= normalizer;
+	signalNormalized = true;
 }
 
 float* ofxFft::getSignal() {
-	if(!signalNormalized) {
-		float normalizer = 1. / 2;
-		for (int i = 0; i < signalSize; i++)
-			signal[i] *= normalizer;
-		signalNormalized = true;
-	}
+	prepareSignal();
 	return signal;
 }
 
-void ofxFft::checkCartesian() {
-	if(!cartesianUpdated)
-		updateCartesian();
+void ofxFft::clampSignal() {
+	prepareSignal();
+	for(int i = 0; i < signalSize; i++) {
+		if(signal[i] > 1)
+			signal[i] = 1;
+		else if(signal[i] < -1)
+			signal[i] = -1;
+	}
+}
+
+void ofxFft::prepareCartesian() {
+	if(!cartesianUpdated) {
+		if(!polarUpdated)
+			executeFft();
+		else
+			updateCartesian();
+	}
 	if(!cartesianNormalized)
 		normalizeCartesian();
 }
 
 float* ofxFft::getReal() {
-	checkCartesian();
+	prepareCartesian();
 	return real;
 }
 
 float* ofxFft::getImaginary() {
-	checkCartesian();
+	prepareCartesian();
 	return imag;
 }
 
-void ofxFft::checkPolar() {
+void ofxFft::preparePolar() {
 	if(!polarUpdated)
 		updatePolar();
 	if(!polarNormalized)
@@ -169,12 +215,12 @@ void ofxFft::checkPolar() {
 }
 
 float* ofxFft::getAmplitude() {
-	checkPolar();
+	preparePolar();
 	return amplitude;
 }
 
 float* ofxFft::getPhase() {
-	checkPolar();
+	preparePolar();
 	return phase;
 }
 
@@ -197,6 +243,7 @@ void ofxFft::normalizeCartesian() {
 }
 
 void ofxFft::updatePolar() {
+	prepareCartesian();
 	for(int i = 0; i < bins; i++) {
 		amplitude[i] = cartesianToAmplitude(real[i], imag[i]);
 		phase[i] = cartesianToPhase(real[i], imag[i]);
@@ -217,30 +264,29 @@ void ofxFft::clearUpdates() {
 	polarUpdated = false;
 	cartesianNormalized = false;
 	polarNormalized = false;
+	signalUpdated = false;
 	signalNormalized = false;
 }
 
-float* ofxFft::fft(float* input, fftMode mode) {
-	executeFft(input);
-	if (mode == OF_FFT_CARTESIAN)
-		return getReal();
-	else if (mode == OF_FFT_POLAR)
-		return getAmplitude();
+void ofxFft::setSignal(float* signal) {
+	clearUpdates();
+	copySignal(signal);
+	signalUpdated = true;
+	signalNormalized = true;
 }
 
-float* ofxFft::ifft(float* input) {
-	executeIfft(input);
-	return getSignal();
+void ofxFft::setCartesian(float* real, float* imag) {
+	clearUpdates();
+	copyReal(real);
+	copyImaginary(imag);
+	cartesianUpdated = true;
+	cartesianNormalized = true;
 }
 
-float* ofxFft::ifft(float* a, float* b, fftMode mode) {
-	if (mode == OF_FFT_POLAR) {
-		setAmplitude(a);
-		setPhase(b);
-		updateCartesian();
-		executeIfft(real, imag);
-	} else if (mode == OF_FFT_CARTESIAN) {
-		executeIfft(a, b);
-	}
-	return getSignal();
+void ofxFft::setPolar(float* amplitude, float* phase) {
+	clearUpdates();
+	copyAmplitude(amplitude);
+	copyPhase(phase);
+	polarUpdated = true;
+	polarNormalized = true;
 }
