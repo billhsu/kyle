@@ -9,7 +9,6 @@
 
 class testApp : public ofBaseApp {
 public:
-	~testApp();
 	void setup();
 	void plot(float* array, int length, float scale, float offset);
 	void audioReceived(float* input, int bufferSize, int nChannels);
@@ -24,6 +23,9 @@ public:
 
 	float appWidth;
 	float appHeight;
+
+	ofImage spectrogram;
+	int spectrogramOffset;
 
 	int mode;
 };
