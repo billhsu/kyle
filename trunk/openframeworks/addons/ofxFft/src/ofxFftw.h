@@ -8,10 +8,10 @@ public:
 	ofxFftw();
 	void setup(int signalSize, fftWindowType windowType);
 	~ofxFftw();
-private:
-	float *fftIn, *fftOut, *ifftIn, *ifftOut;
-	fftwf_plan fftPlan, ifftPlan;
 protected:
 	void executeFft();
 	void executeIfft();
+private:
+	float *fftIn, *fftOut, *ifftIn, *ifftOut;
+	fftwf_plan fftPlan, ifftPlan;
 };
