@@ -9,7 +9,6 @@
 
 class testApp : public ofBaseApp {
 public:
-	~testApp();
 	void setup();
 	void plot(float* array, int length, float scale, float offset);
 	void audioReceived(float* input, int bufferSize, int nChannels);
