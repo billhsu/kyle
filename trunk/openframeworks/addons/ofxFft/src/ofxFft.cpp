@@ -23,20 +23,20 @@ ofxFft* ofxFft::create(int signalSize, fftWindowType windowType, fftImplementati
 
 void ofxFft::setup(int signalSize, fftWindowType windowType) {
 	this->signalSize = signalSize;
-	this->bins = (signalSize / 2) + 1;
+	this->binSize = (signalSize / 2) + 1;
 
 	signalNormalized = true;
 	signal = new float[signalSize];
 
 	cartesianUpdated = true;
 	cartesianNormalized = true;
-	real = new float[bins];
-	imag = new float[bins];
+	real = new float[binSize];
+	imag = new float[binSize];
 
 	polarUpdated = true;
 	polarNormalized = true;
-	amplitude = new float[bins];
-	phase = new float[bins];
+	amplitude = new float[binSize];
+	phase = new float[binSize];
 
 	clear();
 
@@ -46,7 +46,7 @@ void ofxFft::setup(int signalSize, fftWindowType windowType) {
 }
 
 int ofxFft::getBinSize() {
-	return bins;
+	return binSize;
 }
 
 int ofxFft::getSignalSize() {
@@ -105,10 +105,10 @@ void ofxFft::draw(float x, float y, float width, float height) {
 	ofNoFill();
 	ofRect(0, 0, width, height);
 	ofTranslate(0, height);
-	ofScale(width / bins, -height);
+	ofScale(width / binSize, -height);
 	ofBeginShape();
 	getAmplitude();
-	for (int i = 0; i < bins; i++)
+	for (int i = 0; i < binSize; i++)
 		ofVertex(i, amplitude[i]);
 	ofEndShape();
 
@@ -117,19 +117,19 @@ void ofxFft::draw(float x, float y, float width, float height) {
 }
 
 float ofxFft::getWidth() {
-	return bins;
+	return binSize;
 }
 
 float ofxFft::getHeight() {
-	return bins / 2;
+	return binSize / 2;
 }
 
 void ofxFft::clear() {
 	memset(signal, 0, sizeof(float) * signalSize);
-	memset(real, 0, sizeof(float) * bins);
-	memset(imag, 0, sizeof(float) * bins);
-	memset(amplitude, 0, sizeof(float) * bins);
-	memset(phase, 0, sizeof(float) * bins);
+	memset(real, 0, sizeof(float) * binSize);
+	memset(imag, 0, sizeof(float) * binSize);
+	memset(amplitude, 0, sizeof(float) * binSize);
+	memset(phase, 0, sizeof(float) * binSize);
 }
 
 void ofxFft::copySignal(float* signal) {
@@ -137,25 +137,25 @@ void ofxFft::copySignal(float* signal) {
 }
 
 void ofxFft::copyReal(float* real) {
-	memcpy(this->real, real, sizeof(float) * bins);
+	memcpy(this->real, real, sizeof(float) * binSize);
 }
 
 void ofxFft::copyImaginary(float* imag) {
 	if(imag == NULL)
-		memset(this->imag, 0, sizeof(float) * bins);
+		memset(this->imag, 0, sizeof(float) * binSize);
 	else
-		memcpy(this->imag, imag, sizeof(float) * bins);
+		memcpy(this->imag, imag, sizeof(float) * binSize);
 }
 
 void ofxFft::copyAmplitude(float* amplitude) {
-	memcpy(this->amplitude, amplitude, sizeof(float) * bins);
+	memcpy(this->amplitude, amplitude, sizeof(float) * binSize);
 }
 
 void ofxFft::copyPhase(float* phase) {
 	if(phase == NULL)
-		memset(this->phase, 0, sizeof(float) * bins);
+		memset(this->phase, 0, sizeof(float) * binSize);
 	else
-		memcpy(this->phase, phase, sizeof(float) * bins);
+		memcpy(this->phase, phase, sizeof(float) * binSize);
 }
 
 void ofxFft::prepareSignal() {
@@ -233,7 +233,7 @@ float* ofxFft::getPhase() {
 }
 
 void ofxFft::updateCartesian() {
-	for(int i = 0; i < bins; i++) {
+	for(int i = 0; i < binSize; i++) {
 		real[i] = cosf(phase[i]) * amplitude[i];
 		imag[i] = sinf(phase[i]) * amplitude[i];
 	}
@@ -243,7 +243,7 @@ void ofxFft::updateCartesian() {
 
 void ofxFft::normalizeCartesian() {
 	float normalizer = 2. / windowSum;
-	for(int i = 0; i < bins; i++) {
+	for(int i = 0; i < binSize; i++) {
 		real[i] *= normalizer;
 		imag[i] *= normalizer;
 	}
@@ -252,7 +252,7 @@ void ofxFft::normalizeCartesian() {
 
 void ofxFft::updatePolar() {
 	prepareCartesian();
-	for(int i = 0; i < bins; i++) {
+	for(int i = 0; i < binSize; i++) {
 		amplitude[i] = cartesianToAmplitude(real[i], imag[i]);
 		phase[i] = cartesianToPhase(real[i], imag[i]);
 	}
@@ -262,7 +262,7 @@ void ofxFft::updatePolar() {
 
 void ofxFft::normalizePolar() {
 	float normalizer = 2. / windowSum;
-	for(int i = 0; i < bins; i++)
+	for(int i = 0; i < binSize; i++)
 		amplitude[i] *= normalizer;
 	polarNormalized = true;
 }

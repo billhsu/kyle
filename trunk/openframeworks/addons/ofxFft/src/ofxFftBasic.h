@@ -17,4 +17,6 @@ protected:
 private:
 	kiss_fftr_cfg fftCfg, ifftCfg;
 	float* windowedSignal;
+	kiss_fft_cpx* cx_out;
+	kiss_fft_cpx* cx_in;
 };

@@ -46,7 +46,7 @@ public:
 	float getHeight();
 
 protected:
-	virtual void setup(int bins, fftWindowType windowType);
+	virtual void setup(int signalSize, fftWindowType windowType);
 	virtual void executeFft() = 0;
 	virtual void executeIfft() = 0;
 
@@ -79,7 +79,7 @@ protected:
 	void copySignal(float* signal);
 
 	// frequency domain data and methods
-	int signalSize, bins;
+	int signalSize, binSize;
 
 	float *real, *imag;
 	bool cartesianUpdated, cartesianNormalized;
