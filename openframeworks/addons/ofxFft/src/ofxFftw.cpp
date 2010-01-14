@@ -29,18 +29,17 @@ void ofxFftw::executeFft() {
 	fftwf_execute(fftPlan);
 	// explanation of halfcomplex format:
 	// http://www.fftw.org/fftw3_doc/The-Halfcomplex_002dformat-DFT.html
-	copyReal(fftOut); // ignores r[n/2]
+	copyReal(fftOut);
 	imag[0] = 0;
-	for (int i = 1; i < bins; i++)
+	for (int i = 1; i < binSize; i++)
 		imag[i] = fftOut[signalSize - i];
 	cartesianUpdated = true;
 }
 
 void ofxFftw::executeIfft() {
-	memcpy(ifftIn, real, sizeof(float) * bins);
-	for (int i = 1; i < bins; i++)
+	memcpy(ifftIn, real, sizeof(float) * binSize);
+	for (int i = 1; i < binSize; i++)
 		ifftIn[signalSize - i] = imag[i];
-	ifftIn[bins] = 0; // because r[n/2] is not stored
 	fftwf_execute(ifftPlan);
 	runInverseWindow(ifftOut);
 	copySignal(ifftOut);
