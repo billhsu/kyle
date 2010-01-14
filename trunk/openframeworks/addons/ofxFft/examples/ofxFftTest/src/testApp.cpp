@@ -4,7 +4,9 @@ void testApp::setup() {
 	plotHeight = 128;
 	bufferSize = 512;
 
-	fft = ofxFft::create(bufferSize, OF_FFT_HAMMING, OF_FFT_FFTW);
+	fft = ofxFft::create(bufferSize, OF_FFT_WINDOW_HAMMING);
+	// To use FFTW, try:
+	// fft = ofxFft::create(bufferSize, OF_FFT_WINDOW_HAMMING, OF_FFT_FFTW);
 
 	spectrogram.allocate(bufferSize, fft->getBinSize(), OF_IMAGE_GRAYSCALE);
 	memset(spectrogram.getPixels(), 0, (int) (spectrogram.getWidth() * spectrogram.getHeight()) );
@@ -76,9 +78,7 @@ void testApp::audioReceived(float* input, int bufferSize, int nChannels) {
 	unsigned char* pixels = spectrogram.getPixels();
 	for(int i = 0; i < fft->getBinSize(); i++)
 		pixels[i * spectrogramWidth + spectrogramOffset] = (unsigned char) (255. * curFft[i]);
-	spectrogramOffset++;
-	if(spectrogramOffset > spectrogramWidth)
-		spectrogramOffset = 0;
+	spectrogramOffset = (spectrogramOffset + 1) % spectrogramWidth;
 }
 
 void testApp::keyPressed(int key) {

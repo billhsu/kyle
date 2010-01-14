@@ -61,6 +61,7 @@
 			<Add directory="..\..\..\libs\poco\include" />
 			<Add directory="..\..\..\addons\ofxFft\src" />
 			<Add directory="..\..\..\addons\ofxFft\libs\fftw\include" />
+			<Add directory="..\..\..\addons\ofxFft\libs\kiss" />
 		</Compiler>
 		<Linker>
 			<Add option="../../../libs/FreeImage/lib/win_cb/FreeImage.lib" />
@@ -98,6 +99,15 @@
 			<Add after='cmd /c if not exist &quot;$(PROJECT_DIR)bin/data&quot; mkdir &quot;$(PROJECT_DIR)bin/data&quot;' />
 			<Mode after="always" />
 		</ExtraCommands>
+		<Unit filename="..\..\..\addons\ofxFft\libs\kiss\_kiss_fft_guts.h" />
+		<Unit filename="..\..\..\addons\ofxFft\libs\kiss\kiss_fft.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\..\addons\ofxFft\libs\kiss\kiss_fft.h" />
+		<Unit filename="..\..\..\addons\ofxFft\libs\kiss\kiss_fftr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\..\addons\ofxFft\libs\kiss\kiss_fftr.h" />
 		<Unit filename="..\..\..\addons\ofxFft\src\ofxFft.cpp" />
 		<Unit filename="..\..\..\addons\ofxFft\src\ofxFft.h" />
 		<Unit filename="..\..\..\addons\ofxFft\src\ofxFftBasic.cpp" />
