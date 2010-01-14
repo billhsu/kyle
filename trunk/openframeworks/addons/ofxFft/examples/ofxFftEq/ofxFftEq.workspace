@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
-		<Project filename="ofxFftEq.cbp" active="1">
+		<Project filename="ofxFftEq.cbp">
 			<Depends filename="..\..\..\libs\openFrameworksCompiled\project\win_cb\openFrameworksLib.cbp" />
 		</Project>
 		<Project filename="..\..\..\libs\openFrameworksCompiled\project\win_cb\openFrameworksLib.cbp" />
+		<Project filename="..\ofxFftTest\ofxFftTest.cbp" active="1" />
 	</Workspace>
 </CodeBlocks_workspace_file>
