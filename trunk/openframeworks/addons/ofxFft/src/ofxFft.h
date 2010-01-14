@@ -1,28 +1,27 @@
 #pragma once
 
+// If FFTW is unavailable, comment out the following line.
+#define USE_FFTW
+
 #include "ofMain.h"
 
 enum fftWindowType {
-	OF_FFT_RECTANGULAR,
-	OF_FFT_BARTLETT,
-	OF_FFT_HANN,
-	OF_FFT_HAMMING,
-	OF_FFT_SINE};
+	OF_FFT_WINDOW_RECTANGULAR,
+	OF_FFT_WINDOW_BARTLETT,
+	OF_FFT_WINDOW_HANN,
+	OF_FFT_WINDOW_HAMMING,
+	OF_FFT_WINDOW_SINE};
 
 enum fftImplementation {
 	OF_FFT_BASIC,
 	OF_FFT_FFTW};
-
-enum fftMode {
-	OF_FFT_CARTESIAN,
-	OF_FFT_POLAR};
 
 class ofxFft : public ofBaseDraws {
 public:
 	// create and destroy fft
 	static ofxFft* create(
 		int signalSize = 512,
-		fftWindowType windowType = OF_FFT_HAMMING,
+		fftWindowType windowType = OF_FFT_WINDOW_HAMMING,
 		fftImplementation implementation = OF_FFT_BASIC);
 	virtual ~ofxFft();
 
@@ -61,13 +60,13 @@ protected:
 	void setWindowType(fftWindowType windowType);
 
 	inline void runWindow(float* signal) {
-		if(windowType != OF_FFT_RECTANGULAR)
+		if(windowType != OF_FFT_WINDOW_RECTANGULAR)
 			for(int i = 0; i < signalSize; i++)
 				signal[i] *= window[i];
 	}
 
 	inline void runInverseWindow(float* signal) {
-		if(windowType != OF_FFT_RECTANGULAR)
+		if(windowType != OF_FFT_WINDOW_RECTANGULAR)
 			for(int i = 0; i < signalSize; i++)
 				signal[i] *= inverseWindow[i];
 	}

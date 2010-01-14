@@ -1,14 +1,21 @@
 #include "ofxFft.h"
 
 #include "ofxFftBasic.h"
-#include "ofxFftw.h"
+
+#ifdef USE_FFTW
+	#include "ofxFftw.h"
+#endif
 
 ofxFft* ofxFft::create(int signalSize, fftWindowType windowType, fftImplementation implementation) {
 	ofxFft* fft;
 	if(implementation == OF_FFT_BASIC) {
 		fft = new ofxFftBasic();
 	} else if(implementation == OF_FFT_FFTW) {
-		fft = new ofxFftw();
+		#ifdef USE_FFTW
+			fft = new ofxFftw();
+		#else
+			ofLog(OF_LOG_FATAL_ERROR, "You need to add #define USE_FFTW");
+		#endif
 	}
 	fft->setup(signalSize, windowType);
 	return fft;
@@ -16,7 +23,7 @@ ofxFft* ofxFft::create(int signalSize, fftWindowType windowType, fftImplementati
 
 void ofxFft::setup(int signalSize, fftWindowType windowType) {
 	this->signalSize = signalSize;
-	this->bins = signalSize / 2;
+	this->bins = (signalSize / 2) + 1;
 
 	signalNormalized = true;
 	signal = new float[signalSize];
@@ -48,21 +55,22 @@ int ofxFft::getSignalSize() {
 
 void ofxFft::setWindowType(fftWindowType windowType) {
 	this->windowType = windowType;
-	if(windowType == OF_FFT_RECTANGULAR) {
+	if(windowType == OF_FFT_WINDOW_RECTANGULAR) {
 		for(int i = 0; i < signalSize; i++)
 			window[i] = 1; // only used for windowSum
-	} else if(windowType == OF_FFT_BARTLETT) {
-		for (int i = 0; i < signalSize / 2; i++) {
-			window[i] = (i / (signalSize / 2));
-			window[i + (signalSize / 2)] = (1.0 - (i / (signalSize / 2)));
+	} else if(windowType == OF_FFT_WINDOW_BARTLETT) {
+		int half = signalSize / 2;
+		for (int i = 0; i < half; i++) {
+			window[i] = ((float) i / half);
+			window[i + half] = (1 - ((float) i / half));
 		}
-	} else if(windowType == OF_FFT_HANN) {
+	} else if(windowType == OF_FFT_WINDOW_HANN) {
 		for(int i = 0; i < signalSize; i++)
 			window[i] = .5 * (1 - cos((TWO_PI * i) / (signalSize - 1)));
-	} else if(windowType == OF_FFT_HAMMING) {
+	} else if(windowType == OF_FFT_WINDOW_HAMMING) {
 		for(int i = 0; i < signalSize; i++)
 			window[i] = .54 - .46 * cos((TWO_PI * i) / (signalSize - 1));
-	} else if(windowType == OF_FFT_SINE) {
+	} else if(windowType == OF_FFT_WINDOW_SINE) {
 		for(int i = 0; i < signalSize; i++)
 			window[i] = sin((PI * i) / (signalSize - 1));
 	}
