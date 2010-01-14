@@ -5,6 +5,8 @@ void testApp::setup() {
 	bufferSize = 512;
 
 	fft = ofxFft::create(bufferSize, OF_FFT_WINDOW_BARTLETT);
+	// To use with FFTW, try:
+	// fft = ofxFft::create(bufferSize, OF_FFT_WINDOW_BARTLETT, OF_FFT_FFTW);
 
 	audioInput = new float[bufferSize];
 	fftOutput = new float[fft->getBinSize()];
@@ -89,6 +91,7 @@ void testApp::audioReceived(float* input, int bufferSize, int nChannels) {
 		eqOutput[i] = fftOutput[i] * eqFunction[i];
 
 	fft->setPolar(eqOutput, fft->getPhase());
+
 	fft->clampSignal();
 	memcpy(ifftOutput, fft->getSignal(), sizeof(float) * fft->getSignalSize());
 }
