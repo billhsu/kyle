@@ -4,7 +4,7 @@ void testApp::setup() {
 	plotHeight = 128;
 	bufferSize = 512;
 
-	fft = ofxFft::create(bufferSize, OF_FFT_HANN, OF_FFT_FFTW);
+	fft = ofxFft::create(bufferSize, OF_FFT_WINDOW_BARTLETT);
 
 	audioInput = new float[bufferSize];
 	fftOutput = new float[fft->getBinSize()];
