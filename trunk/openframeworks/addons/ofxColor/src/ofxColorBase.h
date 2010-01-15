@@ -22,43 +22,35 @@ static void setMode(ofxColorMode mode) {
 	globalMode = mode;
 }
 
-static void setRange(const float max[3] = globalMaxRgb, const float min[3] = globalMinRgb) {
+static void setRgbRange(float max = globalMaxRgb[0], float min = globalMinRgb[0]) {
 	set(globalMaxRgb, max);
 	set(globalMinRgb, min);
-	set(globalMaxHsv, max);
-	set(globalMinHsv, min);
-}
-static void setRange(
-	float maxx = globalMaxRgb[0], float maxy = globalMaxRgb[1], float maxz = globalMaxRgb[2],
-	float minx = globalMinRgb[0], float miny = globalMinRgb[1], float minz = globalMinRgb[2]) {
-	set(globalMaxRgb, maxx, maxy, maxz);
-	set(globalMinRgb, minx, maxy, maxz);
-	set(globalMaxHsv, maxx, maxy, maxz);
-	set(globalMinHsv, minx, maxy, maxz);
 }
 static void setRgbRange(const float max[3] = globalMaxRgb, const float min[3] = globalMinRgb) {
 	set(globalMaxRgb, max);
 	set(globalMinRgb, min);
 }
-static void setRgbRange(
-	float maxRed = globalMaxRgb[0], float maxGreen = globalMaxRgb[1], float maxBlue = globalMaxRgb[2],
-	float minRed = globalMinRgb[0], float minGreen = globalMinRgb[1], float minBlue = globalMinRgb[2]) {
-	set(globalMaxRgb, maxRed, maxGreen, maxBlue);
-	set(globalMinRgb, minRed, minGreen, minBlue);
+static void setHsvRange(float max = globalMaxHsv[0], float min = globalMinHsv[0]) {
+	set(globalMaxHsv, max);
+	set(globalMinHsv, min);
 }
 static void setHsvRange(const float max[3] = globalMaxRgb, const float min[3] = globalMinRgb) {
 	set(globalMaxHsv, max);
 	set(globalMinHsv, min);
 }
-static void setHsvRange(
-	float maxHue = globalMaxHsv[0], float maxSaturation = globalMaxHsv[1], float maxValue = globalMaxHsv[2],
-	float minHue = globalMaxHsv[0], float minSaturation = globalMaxHsv[1], float minValue = globalMaxHsv[2]) {
-	set(globalMaxHsv, maxHue, maxSaturation, maxValue);
-	set(globalMinHsv, minHue, minSaturation, minValue);
-}
 static void setAlphaRange(float max = globalMaxAlpha, float min = globalMinAlpha) {
 	globalMaxAlpha = max;
 	globalMinAlpha = min;
+}
+
+static void setRange(const float max[3] = globalMaxRgb, const float min[3] = globalMinRgb) {
+	setRgbRange(max, min);
+	setHsvRange(max, min);
+}
+static void setRange(float max = globalMaxAlpha, float min = globalMinAlpha) {
+	setRgbRange(max, min);
+	setHsvRange(max, min);
+	setAlphaRange(max, min);
 }
 
 template<typename T>
@@ -97,7 +89,7 @@ protected:
 			break;
 		}
 	}
-	float* getCurrentMax() const {
+	float* getCurrentMax() {
 		switch(mode) {
 			case OF_COLOR_RGB:
 				return maxRgb;
@@ -107,7 +99,7 @@ protected:
 			break;
 		}
 	}
-	float* getCurrentMin() const {
+	float* getCurrentMin() {
 		switch(mode) {
 			case OF_COLOR_RGB:
 				return minRgb;
@@ -118,6 +110,34 @@ protected:
 		}
 	}
 
+	void getNormalized(float normalized[3]) {
+		ofxColor::normalize(getCurrent(), normalized, getCurrentMin(), getCurrentMax());
+	}
+	void getRgbNormalized(float normalized[3]) {
+		ofxColor::normalize(rgb, normalized, minRgb, maxRgb);
+	}
+	void getHsvNormalized(float normalized[3]) {
+		ofxColor::normalize(hsv, normalized, minHsv, maxHsv);
+	}
+		ofxColorBase<T> getUnnormalized() {
+		return ofxColorBase<T>(*this).unnormalize();
+	}
+	ofxColorBase<T>& unnormalize() {
+		return unnormalize(getCurrentMin(), getCurrentMax());
+	}
+	ofxColorBase<T>& unnormalize(const T min[3], const T max[3]) {
+		unnormalizeSelf(getCurrent(), min, max);
+		return *this;
+	}
+	ofxColorBase<T>& setFromNormalized(const float normalized[3]) {
+		set(normalized);
+		return unnormalize();
+	}
+	ofxColorBase<T>& map(const float toMin[3], const float toMax[3]) {
+		ofxColor::map(getCurrent(), getCurrentMin(), getCurrentMax(), toMin, toMax, getCurrent());
+		dirty = true;
+		return *this;
+	}
 public:
 	// constructors
 	ofxColorBase(ofxColorMode mode = globalMode) {
@@ -156,37 +176,17 @@ public:
 	ofxColorBase<T> getNormalized() {
 		return ofxColorBase<T>(*this).normalize();
 	}
-	void getNormalized(float normalized[3]) {
-		ofxColor::normalize(getCurrent(), normalized, getCurrentMin(), getCurrentMax());
-	}
-	void getRgbNormalized(float normalized[3]) {
-		ofxColor::normalize(rgb, normalized, minRgb, maxRgb);
-	}
-	void getHsvNormalized(float normalized[3]) {
-		ofxColor::normalize(hsv, normalized, minHsv, maxHsv);
-	}
 	ofxColorBase<T>& normalize() {
 		normalizeSelf(rgb, minRgb, maxRgb);
-		set(minRgb, 0);
-		set(maxRgb, 1);
+		ofxColor::set(minRgb, 0);
+		ofxColor::set(maxRgb, 1);
 		normalizeSelf(hsv, minHsv, maxHsv);
-		set(minHsv, 0);
-		set(maxHsv, 1);
+		ofxColor::set(minHsv, 0);
+		ofxColor::set(maxHsv, 1);
+		alpha = ofxColor::normalize(alpha, minAlpha, maxAlpha);
+		minAlpha = 0;
+		maxAlpha = 1;
 		return *this;
-	}
-	ofxColorBase<T> getUnnormalized() {
-		return ofxColorBase<T>(*this).unnormalize();
-	}
-	ofxColorBase<T>& unnormalize() {
-		return unnormalize(getCurrentMin(), getCurrentMax());
-	}
-	ofxColorBase<T>& unnormalize(const T min[3], const T max[3]) {
-		unnormalizeSelf(getCurrent(), min, max);
-		return *this;
-	}
-	ofxColorBase<T>& setFromNormalized(const float normalized[3]) {
-		set(normalized);
-		unnormalize();
 	}
 
 	// set multiple attributes at once
@@ -205,18 +205,13 @@ public:
 		return *this;
 	}
 	ofxColorBase<T>& set(T x, T y, T z, T alpha) {
-		setAlpha(alpha);
-		return set(x, y, z);
+		set(x, y, z);
+		return setAlpha(alpha);
 	}
 	ofxColorBase<T>& set(T x, T y, T z) {
 		ofxColor::set(getCurrent(), x, y, z);
 		dirty = true;
 		return *this;
-	}
-	template<typename S, typename A>
-	ofxColorBase<T>& set(const S x[3], A alpha) {
-		setAlpha(alpha);
-		return set(x);
 	}
 	template<typename S>
 	ofxColorBase<T>& set(const S x[3]) {
@@ -225,19 +220,8 @@ public:
 		return *this;
 	}
 
-	// set range (will reset anything to global that is not specified)
-	ofxColorBase<T>& setRange(const float max[3] = globalMaxRgb, const float min[3] = globalMinRgb) {
-		unnormalize(min, max);
-		dirty = true;
-		ofxColor::set(maxRgb, max);
-		ofxColor::set(minRgb, min);
-		ofxColor::set(maxHsv, max);
-		ofxColor::set(minHsv, min);
-	}
-	ofxColorBase<T>& setRange(
-		float maxx = globalMaxRgb[0], float maxy = globalMaxRgb[1], float maxz = globalMaxRgb[2],
-		float minx = globalMinRgb[0], float miny = globalMinRgb[1], float minz = globalMinRgb[2]) {
-		float min[3] = {minx, miny, minz};
+	ofxColorBase<T>& setRange(float maxx, float maxy, float maxz) {
+		float min[3] = {0, 0, 0};
 		float max[3] = {maxx, maxy, maxz};
 		map(min, max);
 		dirty = true;
@@ -245,6 +229,14 @@ public:
 		ofxColor::set(minRgb, min);
 		ofxColor::set(maxHsv, max);
 		ofxColor::set(minHsv, min);
+		return *this;
+	}
+	ofxColorBase<T>& setRange(float maxx, float maxy, float maxz, float maxa) {
+		setRange(maxx, maxy, maxz);
+		return setAlphaRange(maxa, 0);
+	}
+	ofxColorBase<T>& setRange(float max) {
+		return setRange(max, max, max, max);
 	}
 	ofxColorBase<T>& setRgbRange(const float max[3] = globalMaxRgb, const float min[3] = globalMinRgb) {
 		if(mode == OF_COLOR_RGB)
@@ -253,6 +245,7 @@ public:
 			dirty = true;
 		ofxColor::set(maxRgb, max);
 		ofxColor::set(minRgb, min);
+		return *this;
 	}
 	ofxColorBase<T>& setRgbRange(
 		float maxRed = globalMaxRgb[0], float maxGreen = globalMaxRgb[1], float maxBlue = globalMaxRgb[2],
@@ -265,6 +258,7 @@ public:
 			dirty = true;
 		ofxColor::set(maxRgb, max);
 		ofxColor::set(minRgb, min);
+		return *this;
 	}
 	ofxColorBase<T>& setHsvRange(const float max[3] = globalMaxRgb, const float min[3] = globalMinRgb) {
 		if(mode == OF_COLOR_HSV)
@@ -273,6 +267,7 @@ public:
 			dirty = true;
 		ofxColor::set(maxHsv, max);
 		ofxColor::set(minHsv, min);
+		return *this;
 	}
 	ofxColorBase<T>& setHsvRange(
 		float maxHue = globalMaxHsv[0], float maxSaturation = globalMaxHsv[1], float maxValue = globalMaxHsv[2],
@@ -285,10 +280,13 @@ public:
 			dirty = true;
 		ofxColor::set(maxHsv, max);
 		ofxColor::set(minHsv, min);
+		return *this;
 	}
 	ofxColorBase<T>& setAlphaRange(float max = globalMaxAlpha, float min = globalMinAlpha) {
+		alpha = ofxColor::map(alpha, minAlpha, maxAlpha, min, max);
 		maxAlpha = max;
 		minAlpha = min;
+		return *this;
 	}
 
 	// set attributes directly
@@ -404,38 +402,20 @@ public:
 	ofxColorBase<T>& lerp(ofxColorBase<A>& target, float amount) {
 		float normalizedSource[3];
 		float normalizedTarget[3];
+		float normalizedResult[3];
 		getNormalized(normalizedSource);
 		target.getNormalized(normalizedTarget);
-		ofxColor::lerp(normalizedSource, normalizedTarget, amount, normalizedSource);
-		setFromNormalized(normalizedSource);
+		ofxColor::lerp(normalizedSource, normalizedTarget, amount, normalizedResult);
+		setFromNormalized(normalizedResult);
 		return *this;
 	}
-	template<typename TMIN, typename TMAX>
-	ofxColorBase<T>& map(
-		ofxColorBase<TMIN>& toMin, ofxColorBase<TMAX>& toMax) {
-		ofxColor::map(getCurrent(), getCurrentMin(), getCurrentMax(), toMin, toMax, getCurrent());
-		dirty = true;
-	}
-	template<typename FMIN, typename FMAX, typename TMIN, typename TMAX>
-	ofxColorBase<T>& map(
-		ofxColorBase<FMIN>& fromMin, ofxColorBase<FMAX>& fromMax,
-		ofxColorBase<TMIN>& toMin, ofxColorBase<TMAX>& toMax) {
-		ofxColor::map(getCurrent(), fromMin, fromMax, toMin, toMax, getCurrent());
-		dirty = true;
-		return *this;
-	}
+	// missing: a meaningful public map()
 	ofxColorBase<T> getClamped() const {
 		return ofxColorBase<T>(*this).clamp();
 	}
 	template<typename A>
 	ofxColorBase<T> getLerp(ofxColorBase<A>& target, float amount) const {
 		return ofxColorBase<T>(*this).lerp(target, amount);
-	}
-	template<typename FMIN, typename FMAX, typename TMIN, typename TMAX>
-	ofxColorBase<T>& getMap(
-		ofxColorBase<FMIN>& fromMin, ofxColorBase<FMAX>& fromMax,
-		ofxColorBase<TMIN>& toMin, ofxColorBase<TMAX>& toMax) {
-		return ofxColorBase<T>(*this).map(fromMin, fromMax, toMin, toMax);
 	}
 
 	// copy constructors, assignment operators

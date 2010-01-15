@@ -5,15 +5,18 @@
 
 namespace ofxColor {
 
+// amount = 0 means all a
+// amount = 1 means all b
+// not safe for a = result or b = result
 template<typename A, typename B, typename R>
 void lerp(const A a[3], const B b[3], float amount, R result[3]) {
-	result[0] = (R) (amount * a[0]);
-	result[1] = (R) (amount * a[1]);
-	result[2] = (R) (amount * a[2]);
+	result[0] = (R) (amount * b[0]);
+	result[1] = (R) (amount * b[1]);
+	result[2] = (R) (amount * b[2]);
 	amount = 1 - amount;
-	result[0] += (R) (amount * b[0]);
-	result[1] += (R) (amount * b[1]);
-	result[2] += (R) (amount * b[2]);
+	result[0] += (R) (amount * a[0]);
+	result[1] += (R) (amount * a[1]);
+	result[2] += (R) (amount * a[2]);
 }
 
 inline float map(float source, float fromMin, float fromMax, float toMin, float toMax) {
