@@ -11,7 +11,7 @@ void testApp::setup(){
 
 	particleSystem.setup(ofGetWidth(), ofGetHeight(), binPower);
 
-	kParticles = 12;
+	kParticles = 32;
 	float padding = 0;
 	float maxVelocity = .5;
 	for(int i = 0; i < kParticles * 1024; i++) {
@@ -26,12 +26,12 @@ void testApp::setup(){
 	ofBackground(0, 0, 0);
 
 	timeStep = 1;
-	lineOpacity = 64;
-	pointOpacity = 128;
+	lineOpacity = 0;
+	pointOpacity = 255;
 	isMousePressed = false;
 	slowMotion = false;
-	particleNeighborhood = 4;
-	particleRepulsion = 2;
+	particleNeighborhood = 5;
+	particleRepulsion = 1;
 	centerAttraction = .01;
 }
 
