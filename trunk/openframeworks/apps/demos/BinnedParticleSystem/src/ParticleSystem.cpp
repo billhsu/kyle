@@ -148,41 +148,38 @@ void ParticleSystem::addForce(float targetX, float targetY, float radius, float 
 			int n = curBin.size();
 			for(int i = 0; i < n; i++) {
 				Particle& curParticle = *(curBin[i]);
-				if(curParticle.x > minX && curParticle.x < maxX &&
-					curParticle.y > minY && curParticle.y < maxY) {
-					xd = curParticle.x - targetX;
-					yd = curParticle.y - targetY;
-					length = xd * xd + yd * yd;
-					if(length > 0 && length < maxrsq) {
-						#ifdef DRAW_FORCES
-							glVertex2f(targetX, targetY);
-							glVertex2f(curParticle.x, curParticle.y);
-						#endif
-						#ifdef USE_INVSQRT
-							xhalf = 0.5f * length;
-							lengthi = *(int*) &length;
-							lengthi = 0x5f3759df - (lengthi >> 1);
-							length = *(float*) &lengthi;
-							length *= 1.5f - xhalf * length * length;
-							xd *= length;
-							yd *= length;
-							length *= radius;
-							length = 1 / length;
-							length = (1 - length);
-							length *= scale;
-							xd *= length;
-							yd *= length;
-							curParticle.xf += xd;
-							curParticle.yf += yd;
-						#else
-							length = sqrtf(length);
-							xd /= length;
-							yd /= length;
-							effect = (1 - (length / radius)) * scale;
-							curParticle.xf += xd * effect;
-							curParticle.yf += yd * effect;
-						#endif
-					}
+				xd = curParticle.x - targetX;
+				yd = curParticle.y - targetY;
+				length = xd * xd + yd * yd;
+				if(length > 0 && length < maxrsq) {
+					#ifdef DRAW_FORCES
+						glVertex2f(targetX, targetY);
+						glVertex2f(curParticle.x, curParticle.y);
+					#endif
+					#ifdef USE_INVSQRT
+						xhalf = 0.5f * length;
+						lengthi = *(int*) &length;
+						lengthi = 0x5f3759df - (lengthi >> 1);
+						length = *(float*) &lengthi;
+						length *= 1.5f - xhalf * length * length;
+						xd *= length;
+						yd *= length;
+						length *= radius;
+						length = 1 / length;
+						length = (1 - length);
+						length *= scale;
+						xd *= length;
+						yd *= length;
+						curParticle.xf += xd;
+						curParticle.yf += yd;
+					#else
+						length = sqrtf(length);
+						xd /= length;
+						yd /= length;
+						effect = (1 - (length / radius)) * scale;
+						curParticle.xf += xd * effect;
+						curParticle.yf += yd * effect;
+					#endif
 				}
 			}
 		}
