@@ -3,10 +3,6 @@
 #include "ofxOpenCv.h"
 
 /*
-	Should use * for most code, and pass vector::iterators to them for speed.
-*/
-
-/*
 	ofxLeastSquares generates a mapping function that models an unknown	system
 	based on example input and output measurements. There are 4 steps:
 
@@ -14,6 +10,10 @@
 	2 add() your example input and output data
 	3 update() the mapping function based on all the data
 	4 map() new input to modeled output
+*/
+
+/*
+	Todo: use * for most code, and pass vector::iterators to them for speed.
 */
 
 class ofxLeastSquares {
@@ -103,6 +103,11 @@ public:
 		return result;
 	}
 	vector<float> map(const float* input) {
+		vector<float> inputVec;
+		inputVec.resize(inputCount);
+		for(int i = 0; i < inputCount; i++)
+			inputVec[i] = input[i];
+		return map(inputVec);
 	}
 	/*
 		For those times when you need to start over.
