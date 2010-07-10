@@ -20,16 +20,19 @@ void ofxShader::setup(string fragmentName, string vertexName) {
 	if (GLEE_ARB_shader_objects) {
 		vertexShader = (GLhandleARB) glCreateShader(GL_VERTEX_SHADER);
 		fragmentShader = (GLhandleARB) glCreateShader(GL_FRAGMENT_SHADER);
-		
+
 		string vs = loadShaderText(vertexName);
 		string fs = loadShaderText(fragmentName);
 		const char* vsptr = vs.c_str();
 		const char* fsptr = fs.c_str();
 		int vssize = vs.size();
 		int fssize = fs.size();
-		
+
 		glShaderSourceARB(vertexShader, 1, &vsptr, &vssize);
+		logError();
+
 		glShaderSourceARB(fragmentShader, 1, &fsptr, &fssize);
+		logError();
 
 		glCompileShader((GLuint) vertexShader);
 
@@ -330,8 +333,8 @@ string ofxShader::loadShaderText(string filename) {
 }
 
 void ofxShader::logError() {
-	GLenum err;
-	if((err = glGetError()) != GL_NO_ERROR) {
+	GLenum err = glGetError();
+	if(err != GL_NO_ERROR) {
 		const GLubyte* errString = gluErrorString(err);
 		ofLog(OF_LOG_ERROR, (const char*) errString);
 	}
