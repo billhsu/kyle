@@ -33,30 +33,37 @@ void ofxShader::setup(string fragmentName, string vertexName) {
 
 		glCompileShaderARB(vertexShader);
 
-		//please add compile status check in:
-		//GLint compileStatus = 0;
-		//glGetObjectParameterivARB( vertexShader, GL_COMPILE_STATUS, &compileStatus );
-		//printf("%i \n", compileStatus);
+		GLint compileStatus = 0;
+		glGetObjectParameterivARB(vertexShader, GL_COMPILE_STATUS, &compileStatus);
+		if(compileStatus == GL_TRUE)
+			ofLog(OF_LOG_VERBOSE, "vertex shader compiled");
+		else if (compileStatus == GL_FALSE)
+			ofLog(OF_LOG_ERROR, "vertex shader failed to compile");
 
 		char infobuffer[1000];
 		GLsizei infobufferlen = 0;
 
 		glGetInfoLogARB(vertexShader, 999, &infobufferlen, infobuffer);
 		if (infobufferlen != 0) {
-			infobuffer[infobufferlen] = 0;
-			printf("vertexShader reports: %s \n", infobuffer);
+			infobuffer[infobufferlen] = '\0';
+			string msg = "vertex shader reports:\n";
+			ofLog(OF_LOG_ERROR, msg + infobuffer);
 			return;
 		}
 
 		glCompileShaderARB(fragmentShader);
 
-		//glGetObjectParameterivARB( fragmentShader, GL_COMPILE_STATUS, &compileStatus );
-		//printf("%i \n", compileStatus);
+		glGetObjectParameterivARB(fragmentShader, GL_COMPILE_STATUS, &compileStatus);
+		if(compileStatus == GL_TRUE)
+			ofLog(OF_LOG_VERBOSE, "fragment shader compiled");
+		else if (compileStatus == GL_FALSE)
+			ofLog(OF_LOG_ERROR, "fragment shader failed to compile");
 
 		glGetInfoLogARB(fragmentShader, 999, &infobufferlen, infobuffer);
-		if (infobufferlen != 0) {
-			infobuffer[infobufferlen] = 0;
-			printf("fragmentShader reports: %s \n", infobuffer);
+		if(infobufferlen != 0) {
+			infobuffer[infobufferlen] = '\0';
+			string msg = "fragment shader reports:\n";
+			ofLog(OF_LOG_ERROR, msg + infobuffer);
 			return;
 		}
 
@@ -69,7 +76,7 @@ void ofxShader::setup(string fragmentName, string vertexName) {
 	} else {
 		cout << "Sorry, it looks like you can't run 'ARB_shader_objects'." << endl;
 		cout << "Please check the capabilites of your graphics card." << endl;
-		cout << "http://www.ozone3d.net/gpu_caps_viewer/)" << endl;
+		cout << "http://www.ozone3d.net/gpu_caps_viewer/" << endl;
 	}
 }
 
@@ -103,7 +110,7 @@ void ofxShader::end() {
 		glUseProgramObjectARB(0);
 }
 
-void ofxShader::setSampler2d(char* name, ofImage& img, int textureLocation) {
+void ofxShader::setTexture(char* name, ofImage& img, int textureLocation) {
 	if(bLoaded) {
 		img.getTextureReference().bind();
 		setUniform(name, 0);
@@ -250,8 +257,60 @@ void ofxShader::setAttribute(char* name, double v1, double v2, double v3, double
 		glVertexAttrib4d(getLoc(name), v1, v2, v3, v4);
 }
 
+void ofxShader::setAttributeLocation(char *name, int index) {
+	glBindAttribLocation(shader, index, name);
+}
+
+int ofxShader::getAttributeLocation(char* name) {
+	return glGetAttribLocationARB(shader, name);
+}
+
 inline GLint ofxShader::getLoc(char* name) {
 	return glGetUniformLocationARB(shader, name);
+}
+
+void ofxShader::printActiveUniforms() {
+	GLint numUniforms = 0;
+	glGetProgramiv(shader, GL_ACTIVE_UNIFORMS, &numUniforms);
+	cout << numUniforms << " uniforms:" << endl;
+
+	GLint uniformMaxLength = 0;
+	glGetProgramiv(shader, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength);
+
+	GLint count = -1;
+	GLenum type = 0;
+	GLchar* uniformName = new GLchar[uniformMaxLength];
+	for(GLint i = 0; i < numUniforms; i++) {
+		GLsizei length;
+		glGetActiveUniform(shader, i, uniformMaxLength, &length, &count, &type, uniformName);
+		cout << " [" << i << "] ";
+		for(int j = 0; j < length; j++)
+			cout << uniformName[j];
+		cout << " @ index " << glGetUniformLocation(shader, uniformName) << endl;
+	}
+	delete [] uniformName;
+}
+
+void ofxShader::printActiveAttributes() {
+	GLint numAttributes = 0;
+	glGetProgramiv(shader, GL_ACTIVE_ATTRIBUTES, &numAttributes);
+	cout << numAttributes << " attributes:" << endl;
+
+	GLint attributeMaxLength = 0;
+	glGetProgramiv(shader, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &attributeMaxLength);
+
+	GLint count = -1;
+	GLenum type = 0;
+	GLchar* attributeName = new GLchar[attributeMaxLength];
+	for(GLint i = 0; i < numAttributes; i++) {
+		GLsizei length;
+		glGetActiveAttrib(shader, i, attributeMaxLength, &length, &count, &type, attributeName);
+		cout << " [" << i << "] ";
+		for(int j = 0; j < length; j++)
+			cout <<attributeName[j];
+		cout << " @ index " << glGetAttribLocation(shader, attributeName) << endl;
+	}
+	delete [] attributeName;
 }
 
 string ofxShader::loadShaderText(string filename) {
