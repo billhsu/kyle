@@ -3,8 +3,6 @@
 void testApp::setup() {
 	ofSetVerticalSync(false);
 
-	//ofDisableArbTex();
-
 	displacement.loadImage("displacement.png");
 	int w = (int) displacement.getWidth();
 	int h = (int) displacement.getHeight();
