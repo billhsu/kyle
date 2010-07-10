@@ -15,8 +15,8 @@ public:
 	void begin();
 	void end();
 
-
-	void setSampler2d(char* name, ofImage& img, int textureLocation);
+	// set a texture reference
+	void setTexture(char* name, ofImage& img, int textureLocation);
 
 	// set a single uniform vector
 	void setUniform(char* name, int v1);
@@ -56,6 +56,11 @@ public:
 	void setAttribute(char* name, double v1, double v2, double v3);
 	void setAttribute(char* name, double v1, double v2, double v3, double v4);
 
+	void setAttributeLocation(char* name, int index);
+	int getAttributeLocation(char* name);
+
+	void printActiveUniforms();
+	void printActiveAttributes();
 
 	GLhandleARB vertexShader;
 	GLhandleARB fragmentShader;
