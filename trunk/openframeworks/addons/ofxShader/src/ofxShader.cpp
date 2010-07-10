@@ -103,42 +103,155 @@ void ofxShader::end() {
 		glUseProgramObjectARB(0);
 }
 
-void ofxShader::setSampler2d(string name, ofImage& img, int textureLocation) {
+void ofxShader::setSampler2d(char* name, ofImage& img, int textureLocation) {
 	if(bLoaded) {
-		GLint uniformLocation = glGetUniformLocation(shader, name.c_str());
-		glUniform1i(uniformLocation, textureLocation);
-		glActiveTexture(GL_TEXTURE0 + textureLocation);
 		img.getTextureReference().bind();
+		setUniform(name, 0);
 	}
 }
 
-void ofxShader::setUniform1f (string name, float value) {
+void ofxShader::setUniform(char* name, int v1) {
 	if(bLoaded)
-		glUniform1fARB(glGetUniformLocationARB(shader, name.c_str()), value);
+		glUniform1iARB(getLoc(name), v1);
 }
-void ofxShader::setUniform1i (string name, int value) {
+
+void ofxShader::setUniform(char* name, int v1, int v2) {
 	if(bLoaded)
-		glUniform1iARB(glGetUniformLocationARB(shader, name.c_str()), value);
+		glUniform2iARB(getLoc(name), v1, v2);
 }
-void ofxShader::setUniform1fv (string name, int count, float * value) {
+
+void ofxShader::setUniform(char* name, int v1, int v2, int v3) {
 	if(bLoaded)
-		glUniform1fvARB(glGetUniformLocationARB(shader, name.c_str()), count, value);
+		glUniform3iARB(getLoc(name), v1, v2, v3);
 }
-void ofxShader::setUniform3fv (string name, int count, float * value) {
+
+void ofxShader::setUniform(char* name, int v1, int v2, int v3, int v4) {
 	if(bLoaded)
-		glUniform3fvARB(glGetUniformLocationARB(shader, name.c_str()), count, value);
+		glUniform4iARB(getLoc(name), v1, v2, v3, v4);
 }
-void ofxShader::setUniform4fv (string name, int count, float * value) {
+
+void ofxShader::setUniform(char* name, float v1) {
 	if(bLoaded)
-		glUniform4fvARB(glGetUniformLocationARB(shader, name.c_str()), count, value);
+		glUniform1fARB(getLoc(name), v1);
 }
-void ofxShader::setUniform2f (string name, float value, float value2) {
+
+void ofxShader::setUniform(char* name, float v1, float v2) {
 	if(bLoaded)
-		glUniform2fARB(glGetUniformLocationARB(shader, name.c_str()), value, value2);
+		glUniform2fARB(getLoc(name), v1, v2);
 }
-void ofxShader::setUniform3f (string name, float value, float value2, float value3) {
+
+void ofxShader::setUniform(char* name, float v1, float v2, float v3) {
 	if(bLoaded)
-		glUniform3fARB(glGetUniformLocationARB(shader, name.c_str()), value, value2, value3);
+		glUniform3fARB(getLoc(name), v1, v2, v3);
+}
+
+void ofxShader::setUniform(char* name, float v1, float v2, float v3, float v4) {
+	if(bLoaded)
+		glUniform4fARB(getLoc(name), v1, v2, v3, v4);
+}
+
+void ofxShader::setUniform1v(char* name, int* v, int count) {
+	if(bLoaded)
+		glUniform1ivARB(getLoc(name), count, v);
+}
+
+void ofxShader::setUniform2v(char* name, int* v, int count) {
+	if(bLoaded)
+		glUniform2ivARB(getLoc(name), count, v);
+}
+
+void ofxShader::setUniform3v(char* name, int* v, int count) {
+	if(bLoaded)
+		glUniform3ivARB(getLoc(name), count, v);
+}
+
+void ofxShader::setUniform4v(char* name, int* v, int count) {
+	if(bLoaded)
+		glUniform4ivARB(getLoc(name), count, v);
+}
+
+void ofxShader::setUniform1v(char* name, float* v, int count) {
+	if(bLoaded)
+		glUniform1fvARB(getLoc(name), count, v);
+}
+
+void ofxShader::setUniform2v(char* name, float* v, int count) {
+	if(bLoaded)
+		glUniform2fvARB(getLoc(name), count, v);
+}
+
+void ofxShader::setUniform3v(char* name, float* v, int count) {
+	if(bLoaded)
+		glUniform3fvARB(getLoc(name), count, v);
+}
+
+void ofxShader::setUniform4v(char* name, float* v, int count) {
+	if(bLoaded)
+		glUniform4fvARB(getLoc(name), count, v);
+}
+
+void ofxShader::setAttribute(char* name, short v1) {
+	if(bLoaded)
+		glVertexAttrib1s(getLoc(name), v1);
+}
+
+void ofxShader::setAttribute(char* name, short v1, short v2) {
+	if(bLoaded)
+		glVertexAttrib2s(getLoc(name), v1, v2);
+}
+
+void ofxShader::setAttribute(char* name, short v1, short v2, short v3) {
+	if(bLoaded)
+		glVertexAttrib3s(getLoc(name), v1, v2, v3);
+}
+
+void ofxShader::setAttribute(char* name, short v1, short v2, short v3, short v4) {
+	if(bLoaded)
+		glVertexAttrib4s(getLoc(name), v1, v2, v3, v4);
+}
+
+void ofxShader::setAttribute(char* name, float v1) {
+	if(bLoaded)
+		glVertexAttrib1f(getLoc(name), v1);
+}
+
+void ofxShader::setAttribute(char* name, float v1, float v2) {
+	if(bLoaded)
+		glVertexAttrib2f(getLoc(name), v1, v2);
+}
+
+void ofxShader::setAttribute(char* name, float v1, float v2, float v3) {
+	if(bLoaded)
+		glVertexAttrib3f(getLoc(name), v1, v2, v3);
+}
+
+void ofxShader::setAttribute(char* name, float v1, float v2, float v3, float v4) {
+	if(bLoaded)
+		glVertexAttrib4f(getLoc(name), v1, v2, v3, v4);
+}
+
+void ofxShader::setAttribute(char* name, double v1) {
+	if(bLoaded)
+		glVertexAttrib1d(getLoc(name), v1);
+}
+
+void ofxShader::setAttribute(char* name, double v1, double v2) {
+	if(bLoaded)
+		glVertexAttrib2d(getLoc(name), v1, v2);
+}
+
+void ofxShader::setAttribute(char* name, double v1, double v2, double v3) {
+	if(bLoaded)
+		glVertexAttrib3d(getLoc(name), v1, v2, v3);
+}
+
+void ofxShader::setAttribute(char* name, double v1, double v2, double v3, double v4) {
+	if(bLoaded)
+		glVertexAttrib4d(getLoc(name), v1, v2, v3, v4);
+}
+
+inline GLint ofxShader::getLoc(char* name) {
+	return glGetUniformLocationARB(shader, name);
 }
 
 string ofxShader::loadShaderText(string filename) {
