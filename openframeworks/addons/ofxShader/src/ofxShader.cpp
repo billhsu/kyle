@@ -22,17 +22,14 @@ void ofxShader::setup(string fragmentName, string vertexName) {
 		fragmentShader = (GLhandleARB) glCreateShader(GL_FRAGMENT_SHADER);
 
 		string vs = loadShaderText(vertexName);
-		string fs = loadShaderText(fragmentName);
 		const char* vsptr = vs.c_str();
-		const char* fsptr = fs.c_str();
 		int vssize = vs.size();
-		int fssize = fs.size();
-
 		glShaderSourceARB(vertexShader, 1, &vsptr, &vssize);
-		logError();
 
+		string fs = loadShaderText(fragmentName);
+		const char* fsptr = fs.c_str();
+		int fssize = fs.size();
 		glShaderSourceARB(fragmentShader, 1, &fsptr, &fssize);
-		logError();
 
 		glCompileShader((GLuint) vertexShader);
 
