@@ -10,25 +10,23 @@ ofxShader::~ofxShader() {
 
 void ofxShader::setup(string shaderName) {
 	unload();
-	string fragmentName = shaderName + ".frag";
 	string vertexName = shaderName + ".vert";
-	setup(fragmentName, vertexName);
+	string fragmentName = shaderName + ".frag";
+	setupInline(loadTextFile(vertexName), loadTextFile(fragmentName));
 }
 
-void ofxShader::setup(string fragmentName, string vertexName) {
+void ofxShader::setupInline(string vertexShaderSource, string fragmentShaderSource) {
 	bLoaded = false;
 	if (GLEE_ARB_shader_objects) {
 		vertexShader = (GLhandleARB) glCreateShader(GL_VERTEX_SHADER);
 		fragmentShader = (GLhandleARB) glCreateShader(GL_FRAGMENT_SHADER);
 
-		string vs = loadShaderText(vertexName);
-		const char* vsptr = vs.c_str();
-		int vssize = vs.size();
+		const char* vsptr = vertexShaderSource.c_str();
+		int vssize = vertexShaderSource.size();
 		glShaderSourceARB(vertexShader, 1, &vsptr, &vssize);
 
-		string fs = loadShaderText(fragmentName);
-		const char* fsptr = fs.c_str();
-		int fssize = fs.size();
+		const char* fsptr = fragmentShaderSource.c_str();
+		int fssize = fragmentShaderSource.size();
 		glShaderSourceARB(fragmentShader, 1, &fsptr, &fssize);
 
 		glCompileShader((GLuint) vertexShader);
@@ -313,20 +311,24 @@ void ofxShader::printActiveAttributes() {
 	delete [] attributeName;
 }
 
-string ofxShader::loadShaderText(string filename) {
+string ofxShader::loadTextFile(string filename) {
 	ifstream file;
 	file.open(ofToDataPath(filename).c_str());
-	string text;
-	while(!file.eof()) {
-		string line;
-		getline(file, line);
-		text += line + '\n';
+	if(file.is_open()) {
+		string text;
+		while(!file.eof()) {
+			string line;
+			getline(file, line);
+			text += line + '\n';
+		}
+		file.close();
+		stringstream msg;
+		msg << "Loaded " << filename << ", " << text.size() << " characters.";
+		ofLog(OF_LOG_VERBOSE, msg.str());
+		return text;
+	} else {
+		ofLog(OF_LOG_ERROR, "Could not open " + filename);
 	}
-	file.close();
-	stringstream msg;
-	msg << filename << " is " << text.size() << " characters";
-	ofLog(OF_LOG_VERBOSE, msg.str());
-	return text;
 }
 
 void ofxShader::logError() {

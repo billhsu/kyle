@@ -9,7 +9,7 @@ public:
 	~ofxShader();
 
 	void setup(string shaderName);
-	void setup(string fragmentShaderName, string vertexShaderName);
+	void setupInline(string fragmentShaderName, string vertexShaderName);
 	void logError();
 
 	void begin();
@@ -67,7 +67,7 @@ public:
 	GLhandleARB shader;
 
 protected:
-	string loadShaderText(string filename);
+	string loadTextFile(string filename);
 	void unload();
 	GLint getLoc(const char* name);
 
