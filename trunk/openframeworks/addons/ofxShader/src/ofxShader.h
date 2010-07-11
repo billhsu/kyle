@@ -11,6 +11,7 @@ public:
 	void setup(string shaderName);
 	void setup(string vertexName, string fragmentName);
 	void setupInline(string vertexShaderSource, string fragmentShaderSource);
+	void unload();
 	void logError();
 
 	void begin();
@@ -69,7 +70,6 @@ public:
 
 protected:
 	string loadTextFile(string filename);
-	void unload();
 	GLint getLoc(const char* name);
 
 	bool bLoaded;
