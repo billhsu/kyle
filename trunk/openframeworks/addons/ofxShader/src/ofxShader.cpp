@@ -9,14 +9,17 @@ ofxShader::~ofxShader() {
 }
 
 void ofxShader::setup(string shaderName) {
-	unload();
-	string vertexName = shaderName + ".vert";
-	string fragmentName = shaderName + ".frag";
+	setup(shaderName, shaderName);
+}
+
+void ofxShader::setup(string vertexName, string fragmentName) {
+	vertexName += ".vert";
+	fragmentName += ".frag";
 	setupInline(loadTextFile(vertexName), loadTextFile(fragmentName));
 }
 
 void ofxShader::setupInline(string vertexShaderSource, string fragmentShaderSource) {
-	bLoaded = false;
+	unload();
 	if (GLEE_ARB_shader_objects) {
 		vertexShader = (GLhandleARB) glCreateShader(GL_VERTEX_SHADER);
 		fragmentShader = (GLhandleARB) glCreateShader(GL_FRAGMENT_SHADER);

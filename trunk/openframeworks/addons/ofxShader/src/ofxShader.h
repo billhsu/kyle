@@ -9,7 +9,8 @@ public:
 	~ofxShader();
 
 	void setup(string shaderName);
-	void setupInline(string fragmentShaderName, string vertexShaderName);
+	void setup(string vertexName, string fragmentName);
+	void setupInline(string vertexShaderSource, string fragmentShaderSource);
 	void logError();
 
 	void begin();
