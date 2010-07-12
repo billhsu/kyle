@@ -18,7 +18,8 @@ public:
 	void end();
 
 	// set a texture reference
-	void setTexture(const char* name, ofImage& img, int textureLocation);
+	void setTexture(const char* name, ofBaseHasTexture& img, int textureLocation);
+	void setTexture(const char* name, ofTexture& img, int textureLocation);
 
 	// set a single uniform vector
 	void setUniform(const char* name, int v1);
