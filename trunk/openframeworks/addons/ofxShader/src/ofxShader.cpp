@@ -111,10 +111,14 @@ void ofxShader::end() {
 		glUseProgramObjectARB(0);
 }
 
-void ofxShader::setTexture(const char* name, ofImage& img, int textureLocation) {
+void ofxShader::setTexture(const char* name, ofBaseHasTexture& img, int textureLocation) {
+	setTexture(name, img.getTextureReference(), textureLocation);
+}
+
+void ofxShader::setTexture(const char* name, ofTexture& tex, int textureLocation) {
 	if(bLoaded) {
-		img.getTextureReference().bind();
-		setUniform(name, 0);
+		tex.bind();
+		setUniform(name, textureLocation);
 	}
 }
 
