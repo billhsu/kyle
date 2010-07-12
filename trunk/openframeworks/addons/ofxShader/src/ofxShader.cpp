@@ -117,6 +117,7 @@ void ofxShader::setTexture(const char* name, ofBaseHasTexture& img, int textureL
 
 void ofxShader::setTexture(const char* name, ofTexture& tex, int textureLocation) {
 	if(bLoaded) {
+		glActiveTexture(GL_TEXTURE0 + textureLocation);
 		tex.bind();
 		setUniform(name, textureLocation);
 	}
