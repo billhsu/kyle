@@ -1,9 +1,9 @@
-const int octaves = 8;
-const float pi = asin(1.) * 2.;
+const int octaves = 12;
+const float pi = 3.1415926535;
 
 uniform float seed;
-uniform float[octaves] weights;
-uniform float[octaves] scaling;
+uniform float weights[octaves];
+uniform float scaling[octaves];
 uniform float normalization;
 
 float rand(vec2 coord) {
