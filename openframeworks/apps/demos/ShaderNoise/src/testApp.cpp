@@ -12,7 +12,7 @@ void testApp::setup() {
 void testApp::setupNoise() {
 	shader.setup("noise");
 	shader.begin();
-	const int octaves = 8;
+	const int octaves = 12;
 	const float dropoff = .5;
 	float total = 0;
 	float weights[octaves];
