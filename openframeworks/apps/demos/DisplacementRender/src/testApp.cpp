@@ -54,17 +54,17 @@ void testApp::draw(){
 	if(!mesh.draw()) {
 		mesh.begin();
 		int step = 1;
-		glBegin(GL_TRIANGLE_STRIP);
 		for(int y = 0; y < h - step; y += step) {
+			glBegin(GL_TRIANGLE_STRIP);
 			for(int x = 0; x < w; x += step) {
 				glTexCoord2f(x, y);
 				glVertex2f(x, y);
 
-				glTexCoord2f(x, y + 1);
+				glTexCoord2f(x, y + step);
 				glVertex2f(x, y + step);
 			}
+			glEnd();
 		}
-		glEnd();
 		mesh.end();
 	}
 
