@@ -232,6 +232,21 @@ float* ofxFft::getPhase() {
 	return phase;
 }
 
+float ofxFft::getAmplitudeAtBin(float bin) {
+	float* amplitude = getAmplitude();
+	int lowBin = ofClamp(floorf(bin), 0, binSize - 1);
+	int highBin = ofClamp(ceilf(bin), 0, binSize - 1);
+	return ofMap(bin, lowBin, highBin, amplitude[lowBin], amplitude[highBin]);
+}
+
+float ofxFft::getBinFromFrequency(float frequency, float sampleRate) {
+	return frequency * binSize / (sampleRate / 2);
+}
+
+float ofxFft::getAmplitudeAtFrequency(float frequency, float sampleRate) {
+	return getAmplitudeAtBin(getBinFromFrequency(frequency, sampleRate));
+}
+
 void ofxFft::updateCartesian() {
 	for(int i = 0; i < binSize; i++) {
 		real[i] = cosf(phase[i]) * amplitude[i];
