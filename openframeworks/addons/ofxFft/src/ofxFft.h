@@ -1,7 +1,7 @@
 #pragma once
 
 // If FFTW is unavailable, comment out the following line.
-#define USE_FFTW
+//#define USE_FFTW
 
 #include "ofMain.h"
 
@@ -38,6 +38,11 @@ public:
 	float* getImaginary();
 	float* getAmplitude();
 	float* getPhase();
+
+	// for rui
+	float getAmplitudeAtBin(float bin);
+	float getBinFromFrequency(float frequency, float sampleRate = 44100);
+	float getAmplitudeAtFrequency(float frequency, float sampleRate = 44100);
 
 	// ofBaseDraws
 	void draw(float x, float y);
