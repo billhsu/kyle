@@ -1,5 +1,9 @@
 #pragma once
 
+/*
+	todo: add support for attachment of multiple shaders
+*/
+
 #include "ofMain.h"
 #include <fstream>
 
@@ -65,13 +69,19 @@ public:
 	void printActiveUniforms();
 	void printActiveAttributes();
 
-	GLhandleARB vertexShader;
-	GLhandleARB fragmentShader;
-	GLhandleARB shader;
+	GLuint vertexShader;
+	GLuint fragmentShader;
+	GLuint program;
 
 protected:
 	string loadTextFile(string filename);
 	GLint getLoc(const char* name);
+
+	void compileShader(GLuint shader, string source, string type);
+	void checkProgramInfoLog(GLuint program);
+	bool checkShaderLinkStatus(GLuint shader, string type);
+	bool checkShaderCompileStatus(GLuint shader, string type);
+	void checkShaderInfoLog(GLuint shader, string type);
 
 	bool bLoaded;
 };

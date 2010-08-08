@@ -18,62 +18,86 @@ void ofxShader::setup(string vertexName, string fragmentName) {
 	setupInline(loadTextFile(vertexName), loadTextFile(fragmentName));
 }
 
+void ofxShader::compileShader(GLuint shader, string source, string type) {
+	const char* sptr = source.c_str();
+	int ssize = source.size();
+	glShaderSource(shader, 1, &sptr, &ssize);
+	glCompileShader(shader);
+}
+
+bool ofxShader::checkShaderCompileStatus(GLuint shader, string type) {
+	GLint status = GL_FALSE;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+	if(status == GL_TRUE)
+		ofLog(OF_LOG_VERBOSE, type + " shader compiled.");
+	else if (status == GL_FALSE) {
+		ofLog(OF_LOG_ERROR, type + " shader failed to compile.");
+		checkShaderInfoLog(shader, type);
+		return false;
+	}
+	return true;
+}
+
+bool ofxShader::checkShaderLinkStatus(GLuint shader, string type) {
+	GLint status;
+	glGetProgramiv(shader, GL_LINK_STATUS, &status);
+	if(status == GL_TRUE)
+		ofLog(OF_LOG_VERBOSE, type + " shader linked.");
+	else if (status == GL_FALSE) {
+		ofLog(OF_LOG_ERROR, type + " shader failed to link.");
+		checkShaderInfoLog(shader, type);
+		return false;
+	}
+	return true;
+}
+
+void ofxShader::checkShaderInfoLog(GLuint shader, string type) {
+	GLsizei infoLength;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLength);
+	if (infoLength > 1) {
+		GLchar* infoBuffer = new GLchar[infoLength];
+		glGetShaderInfoLog(shader, infoLength, &infoLength, infoBuffer);
+		ofLog(OF_LOG_ERROR, type + " shader reports:\n" + infoBuffer);
+		delete [] infoBuffer;
+	}
+}
+
+void ofxShader::checkProgramInfoLog(GLuint program) {
+	GLsizei infoLength;
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLength);
+	if (infoLength > 1) {
+		GLchar* infoBuffer = new GLchar[infoLength];
+		glGetProgramInfoLog(program, infoLength, &infoLength, infoBuffer);
+		string msg = "Shader program reports:\n";
+		ofLog(OF_LOG_ERROR, msg + infoBuffer);
+		delete [] infoBuffer;
+	}
+}
+
 void ofxShader::setupInline(string vertexShaderSource, string fragmentShaderSource) {
 	unload();
 	if (GLEE_ARB_shader_objects) {
-		vertexShader = (GLhandleARB) glCreateShader(GL_VERTEX_SHADER);
-		fragmentShader = (GLhandleARB) glCreateShader(GL_FRAGMENT_SHADER);
+		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-		const char* vsptr = vertexShaderSource.c_str();
-		int vssize = vertexShaderSource.size();
-		glShaderSourceARB(vertexShader, 1, &vsptr, &vssize);
+		compileShader(vertexShader, vertexShaderSource, "Vertex");
+		bool vertexCompiled = checkShaderCompileStatus(vertexShader, "Vertex");
 
-		const char* fsptr = fragmentShaderSource.c_str();
-		int fssize = fragmentShaderSource.size();
-		glShaderSourceARB(fragmentShader, 1, &fsptr, &fssize);
+		compileShader(fragmentShader, fragmentShaderSource, "Fragment");
+		bool fragmentCompiled = checkShaderCompileStatus(fragmentShader, "Fragment");
 
-		glCompileShader((GLuint) vertexShader);
+		if(vertexCompiled && fragmentCompiled) {
+			program = glCreateProgram();
+			glAttachShader(program, vertexShader);
+			glAttachShader(program, fragmentShader);
+			glLinkProgram(program);
 
-		GLint compileStatus;
-		glGetProgramiv((GLuint) vertexShader, GL_COMPILE_STATUS, &compileStatus);
-		if(compileStatus == GL_TRUE)
-			ofLog(OF_LOG_VERBOSE, "vertex shader compiled");
-		else if (compileStatus == GL_FALSE)
-			ofLog(OF_LOG_ERROR, "vertex shader failed to compile");
+			checkShaderLinkStatus(vertexShader, "Vertex");
+			checkShaderLinkStatus(fragmentShader, "Fragment");
+			checkProgramInfoLog(program);
 
-		char infobuffer[1000];
-		GLsizei infobufferlen = 0;
-
-		glGetInfoLogARB(vertexShader, 999, &infobufferlen, infobuffer);
-		if (infobufferlen != 0) {
-			infobuffer[infobufferlen] = '\0';
-			string msg = "vertex shader reports:\n";
-			ofLog(OF_LOG_ERROR, msg + infobuffer);
-			return;
+			bLoaded = true;
 		}
-
-		glCompileShader((GLuint) fragmentShader);
-
-		glGetProgramiv((GLuint) fragmentShader, GL_COMPILE_STATUS, &compileStatus);
-		if(compileStatus == GL_TRUE)
-			ofLog(OF_LOG_VERBOSE, "fragment shader compiled");
-		else if (compileStatus == GL_FALSE)
-			ofLog(OF_LOG_ERROR, "fragment shader failed to compile");
-
-		glGetInfoLogARB(fragmentShader, 999, &infobufferlen, infobuffer);
-		if(infobufferlen != 0) {
-			infobuffer[infobufferlen] = '\0';
-			string msg = "fragment shader reports:\n";
-			ofLog(OF_LOG_ERROR, msg + infobuffer);
-			return;
-		}
-
-		shader = glCreateProgramObjectARB();
-		glAttachObjectARB(shader, vertexShader);
-		glAttachObjectARB(shader, fragmentShader);
-		glLinkProgramARB(shader);
-
-		bLoaded = true;
 	} else {
 		cout << "Sorry, it looks like you can't run 'ARB_shader_objects'." << endl;
 		cout << "Please check the capabilites of your graphics card." << endl;
@@ -84,18 +108,18 @@ void ofxShader::setupInline(string vertexShaderSource, string fragmentShaderSour
 void ofxShader::unload() {
 	if(bLoaded) {
 		if (vertexShader) {
-			glDetachObjectARB(shader, vertexShader);
-			glDeleteObjectARB(vertexShader);
+			glDetachShader(program, vertexShader);
+			glDeleteShader(vertexShader);
 			vertexShader = 0;
 		}
 		if (fragmentShader) {
-			glDetachObjectARB(shader, fragmentShader);
-			glDeleteObjectARB(fragmentShader);
+			glDetachShader(program, fragmentShader);
+			glDeleteShader(fragmentShader);
 			fragmentShader = 0;
 		}
-		if (shader) {
-			glDeleteObjectARB(shader);
-			shader = 0;
+		if (program) {
+			glDeleteProgram(program);
+			program = 0;
 		}
 	}
 	bLoaded = false;
@@ -103,12 +127,12 @@ void ofxShader::unload() {
 
 void ofxShader::begin() {
 	if (bLoaded == true)
-		glUseProgramObjectARB(shader);
+		glUseProgram(program);
 }
 
 void ofxShader::end() {
 	if (bLoaded == true)
-		glUseProgramObjectARB(0);
+		glUseProgram(0);
 }
 
 void ofxShader::setTexture(const char* name, ofBaseHasTexture& img, int textureLocation) {
@@ -129,82 +153,82 @@ void ofxShader::setTexture(const char* name, ofTexture& tex, int textureLocation
 
 void ofxShader::setUniform(const char* name, int v1) {
 	if(bLoaded)
-		glUniform1iARB(getLoc(name), v1);
+		glUniform1i(getLoc(name), v1);
 }
 
 void ofxShader::setUniform(const char* name, int v1, int v2) {
 	if(bLoaded)
-		glUniform2iARB(getLoc(name), v1, v2);
+		glUniform2i(getLoc(name), v1, v2);
 }
 
 void ofxShader::setUniform(const char* name, int v1, int v2, int v3) {
 	if(bLoaded)
-		glUniform3iARB(getLoc(name), v1, v2, v3);
+		glUniform3i(getLoc(name), v1, v2, v3);
 }
 
 void ofxShader::setUniform(const char* name, int v1, int v2, int v3, int v4) {
 	if(bLoaded)
-		glUniform4iARB(getLoc(name), v1, v2, v3, v4);
+		glUniform4i(getLoc(name), v1, v2, v3, v4);
 }
 
 void ofxShader::setUniform(const char* name, float v1) {
 	if(bLoaded)
-		glUniform1fARB(getLoc(name), v1);
+		glUniform1f(getLoc(name), v1);
 }
 
 void ofxShader::setUniform(const char* name, float v1, float v2) {
 	if(bLoaded)
-		glUniform2fARB(getLoc(name), v1, v2);
+		glUniform2f(getLoc(name), v1, v2);
 }
 
 void ofxShader::setUniform(const char* name, float v1, float v2, float v3) {
 	if(bLoaded)
-		glUniform3fARB(getLoc(name), v1, v2, v3);
+		glUniform3f(getLoc(name), v1, v2, v3);
 }
 
 void ofxShader::setUniform(const char* name, float v1, float v2, float v3, float v4) {
 	if(bLoaded)
-		glUniform4fARB(getLoc(name), v1, v2, v3, v4);
+		glUniform4f(getLoc(name), v1, v2, v3, v4);
 }
 
 void ofxShader::setUniform1v(const char* name, int* v, int count) {
 	if(bLoaded)
-		glUniform1ivARB(getLoc(name), count, v);
+		glUniform1iv(getLoc(name), count, v);
 }
 
 void ofxShader::setUniform2v(const char* name, int* v, int count) {
 	if(bLoaded)
-		glUniform2ivARB(getLoc(name), count, v);
+		glUniform2iv(getLoc(name), count, v);
 }
 
 void ofxShader::setUniform3v(const char* name, int* v, int count) {
 	if(bLoaded)
-		glUniform3ivARB(getLoc(name), count, v);
+		glUniform3iv(getLoc(name), count, v);
 }
 
 void ofxShader::setUniform4v(const char* name, int* v, int count) {
 	if(bLoaded)
-		glUniform4ivARB(getLoc(name), count, v);
+		glUniform4iv(getLoc(name), count, v);
 }
 
 void ofxShader::setUniform1v(const char* name, float* v, int count) {
 	if(bLoaded)
-		glUniform1fvARB(getLoc(name), count, v);
+		glUniform1fv(getLoc(name), count, v);
 }
 
 void ofxShader::setUniform2v(const char* name, float* v, int count) {
 	if(bLoaded)
-		glUniform2fvARB(getLoc(name), count, v);
+		glUniform2fv(getLoc(name), count, v);
 }
 
 void ofxShader::setUniform3v(const char* name, float* v, int count) {
 	if(bLoaded)
-		glUniform3fvARB(getLoc(name), count, v);
+		glUniform3fv(getLoc(name), count, v);
 }
 
 void ofxShader::setUniform4v(const char* name, float* v, int count) {
 	if(bLoaded)
-		glUniform4fvARB(getLoc(name), count, v);
+		glUniform4fv(getLoc(name), count, v);
 }
 
 void ofxShader::setAttribute(const char* name, short v1) {
@@ -268,57 +292,57 @@ void ofxShader::setAttribute(const char* name, double v1, double v2, double v3, 
 }
 
 void ofxShader::setAttributeLocation(const char* name, int index) {
-	glBindAttribLocation((GLuint) shader, index, name);
+	glBindAttribLocation(program, index, name);
 }
 
 int ofxShader::getAttributeLocation(const char* name) {
-	return glGetAttribLocationARB(shader, name);
+	return glGetAttribLocation(program, name);
 }
 
 inline GLint ofxShader::getLoc(const char* name) {
-	return glGetUniformLocationARB(shader, name);
+	return glGetUniformLocation(program, name);
 }
 
 void ofxShader::printActiveUniforms() {
 	GLint numUniforms = 0;
-	glGetProgramiv((GLuint) shader, GL_ACTIVE_UNIFORMS, &numUniforms);
+	glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &numUniforms);
 	cout << numUniforms << " uniforms:" << endl;
 
 	GLint uniformMaxLength = 0;
-	glGetProgramiv((GLuint) shader, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength);
+	glGetProgramiv(program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength);
 
 	GLint count = -1;
 	GLenum type = 0;
 	GLchar* uniformName = new GLchar[uniformMaxLength];
 	for(GLint i = 0; i < numUniforms; i++) {
 		GLsizei length;
-		glGetActiveUniform((GLuint) shader, i, uniformMaxLength, &length, &count, &type, uniformName);
+		glGetActiveUniform(program, i, uniformMaxLength, &length, &count, &type, uniformName);
 		cout << " [" << i << "] ";
 		for(int j = 0; j < length; j++)
 			cout << uniformName[j];
-		cout << " @ index " << glGetUniformLocation((GLuint) shader, uniformName) << endl;
+		cout << " @ index " << glGetUniformLocation(program, uniformName) << endl;
 	}
 	delete [] uniformName;
 }
 
 void ofxShader::printActiveAttributes() {
 	GLint numAttributes = 0;
-	glGetProgramiv((GLuint) shader, GL_ACTIVE_ATTRIBUTES, &numAttributes);
+	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &numAttributes);
 	cout << numAttributes << " attributes:" << endl;
 
 	GLint attributeMaxLength = 0;
-	glGetProgramiv((GLuint) shader, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &attributeMaxLength);
+	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &attributeMaxLength);
 
 	GLint count = -1;
 	GLenum type = 0;
 	GLchar* attributeName = new GLchar[attributeMaxLength];
 	for(GLint i = 0; i < numAttributes; i++) {
 		GLsizei length;
-		glGetActiveAttrib((GLuint) shader, i, attributeMaxLength, &length, &count, &type, attributeName);
+		glGetActiveAttrib(program, i, attributeMaxLength, &length, &count, &type, attributeName);
 		cout << " [" << i << "] ";
 		for(int j = 0; j < length; j++)
 			cout <<attributeName[j];
-		cout << " @ index " << glGetAttribLocation((GLuint) shader, attributeName) << endl;
+		cout << " @ index " << glGetAttribLocation(program, attributeName) << endl;
 	}
 	delete [] attributeName;
 }
