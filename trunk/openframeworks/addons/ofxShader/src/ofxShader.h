@@ -16,7 +16,6 @@ public:
 	void setup(string vertexName, string fragmentName);
 	void setupInline(string vertexShaderSource, string fragmentShaderSource);
 	void unload();
-	void logError();
 
 	void begin();
 	void end();
