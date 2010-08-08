@@ -366,11 +366,3 @@ string ofxShader::loadTextFile(string filename) {
 		ofLog(OF_LOG_ERROR, "Could not open " + filename);
 	}
 }
-
-void ofxShader::logError() {
-	GLenum err = glGetError();
-	if(err != GL_NO_ERROR) {
-		const GLubyte* errString = gluErrorString(err);
-		ofLog(OF_LOG_ERROR, (const char*) errString);
-	}
-}
