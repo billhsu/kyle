@@ -5,6 +5,7 @@
 
 /*
 	add multisampling support
+	need to be able to load results back to an ofImage maybe using glGetTexImage
 	add all the checks for warnings and errors (just before begin())
 	add OpenGLes support
 	should ofFbo override the screen width and screen height returned by ofGetWidth() and ofGetHeight()?
