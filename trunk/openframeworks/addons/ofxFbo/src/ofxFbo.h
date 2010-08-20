@@ -7,6 +7,7 @@
 	add multisampling support
 	add all the checks for warnings and errors (just before begin())
 	add OpenGLes support
+	should ofFbo override the screen width and screen height returned by ofGetWidth() and ofGetHeight()?
 */
 
 class ofxFbo {
@@ -17,6 +18,7 @@ public:
 
 	void setFov(float fov);
 	void setBackground(float r, float g, float b, float a = 255);
+	void clearAlpha();
 
 	void attach(ofTexture& target, int position = 0);
 	void detach(int position = 0);

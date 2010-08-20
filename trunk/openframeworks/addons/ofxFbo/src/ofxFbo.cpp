@@ -139,6 +139,17 @@ void ofxFbo::setBackground(float r, float g, float b, float a) {
 	pop();
 }
 
+void ofxFbo::clearAlpha() {
+	push();
+
+	glColorMask(0, 0, 0, 1);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glColorMask(1, 1, 1, 1);
+
+	pop();
+}
+
 void ofxFbo::begin() {
 	checkAttachment();
 	glPushMatrix();
