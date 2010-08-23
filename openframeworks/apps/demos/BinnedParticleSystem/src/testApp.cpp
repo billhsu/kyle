@@ -26,11 +26,11 @@ void testApp::setup(){
 	ofBackground(0, 0, 0);
 
 	timeStep = 1;
-	lineOpacity = 0;
+	lineOpacity = 128;
 	pointOpacity = 255;
 	isMousePressed = false;
 	slowMotion = false;
-	particleNeighborhood = 5;
+	particleNeighborhood = 4;
 	particleRepulsion = 1;
 	centerAttraction = .01;
 }
