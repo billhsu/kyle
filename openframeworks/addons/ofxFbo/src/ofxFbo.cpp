@@ -21,6 +21,7 @@ ofTexture* ofxFbo::getAttachment() {
 
 void ofxFbo::checkAttachment() {
 	if(getAttachment() == NULL) {
+		// change this to only allocate if not already allocated
 		internalColor.allocate(width, height, GL_RGBA);
 		attach(internalColor);
 	}
