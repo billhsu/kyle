@@ -3,7 +3,7 @@
 void testApp::setup(){
 	// pass in a string that is the name of your application
 	// so the driver knows where to send events
-	ofxConnexion::start("3dConnexion"); // change this so it doesn't have to be a pascal string
+	ofxConnexion::start("ofxConnexionExample");
 	
 	// if you want to get data events, you can add a listener toofxConnexion::connexionEvent
 	ofAddListener(ofxConnexion::connexionEvent, this, &testApp::connexionMoved);
