@@ -46,6 +46,9 @@ public:
 
 	void draw(float x, float y);
 	void draw(float x, float y, float width, float height);
+	
+	int getWidth();
+	int getHeight();
 
 protected:
 	int width, height;

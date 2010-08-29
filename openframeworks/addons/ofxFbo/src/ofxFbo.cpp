@@ -172,3 +172,11 @@ void ofxFbo::draw(float x, float y, float width, float height) {
 	checkAttachment();
 	getAttachment()->draw(x, y, width, height);
 }
+
+int ofxFbo::getWidth() {
+	return width;
+}
+
+int ofxFbo::getHeight() {
+	return height;
+}
