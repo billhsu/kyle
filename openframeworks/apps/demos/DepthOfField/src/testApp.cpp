@@ -7,11 +7,11 @@ void testApp::setup() {
 	jerk = .4;
 	size = 4;
 	
-	ofSetLogLevel(OF_LOG_VERBOSE);
 	dofShader.setup("DOFLine");
-	dofShader.printActiveUniforms();
-	dofShader.printActiveAttributes();
-	ofEnableAlphaBlending();
+
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 }
 
 void testApp::update() {
@@ -37,6 +37,7 @@ void testApp::draw() {
 	glTranslatef(-avg.x, -avg.y, -avg.z);
 	
 	dofShader.begin();
+	dofShader.setUniform1f("aspectRatio", ofGetWidth() / ofGetHeight());
 	dofShader.setUniform1f("lineWidth", 1);
 	dofShader.setUniform1f("focusDistance", mouseX * 2);
 	dofShader.setUniform1f("aperture", .03);
@@ -78,5 +79,5 @@ void testApp::draw() {
 	
 	glPopMatrix();
 	
-	ofDrawBitmapString(ofToString((int) ofGetFrameRate()), 10, 20);
+	//ofDrawBitmapString(ofToString((int) ofGetFrameRate()), 10, 20);
 }
