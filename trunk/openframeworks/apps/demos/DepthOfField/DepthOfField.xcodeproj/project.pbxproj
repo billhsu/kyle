@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2794EB69127B3E5200B9A859 /* ofxFbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2794EB63127B3E5200B9A859 /* ofxFbo.cpp */; };
 		2794EB6A127B3E5200B9A859 /* ofxShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2794EB67127B3E5200B9A859 /* ofxShader.cpp */; };
 		27CFD3A1122AB5C900B240D8 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CFD39A122AB5C900B240D8 /* main.cpp */; };
 		27CFD3A4122AB5C900B240D8 /* testApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CFD39F122AB5C900B240D8 /* testApp.cpp */; };
@@ -83,8 +82,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		2794EB63127B3E5200B9A859 /* ofxFbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ofxFbo.cpp; path = ../../../addons/ofxFbo/src/ofxFbo.cpp; sourceTree = SOURCE_ROOT; };
-		2794EB64127B3E5200B9A859 /* ofxFbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofxFbo.h; path = ../../../addons/ofxFbo/src/ofxFbo.h; sourceTree = SOURCE_ROOT; };
 		2794EB67127B3E5200B9A859 /* ofxShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ofxShader.cpp; path = ../../../addons/ofxShader/src/ofxShader.cpp; sourceTree = SOURCE_ROOT; };
 		2794EB68127B3E5200B9A859 /* ofxShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofxShader.h; path = ../../../addons/ofxShader/src/ofxShader.h; sourceTree = SOURCE_ROOT; };
 		2794EC29127B46E500B9A859 /* DepthOfField.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DepthOfField.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -179,25 +176,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		2794EB61127B3E5200B9A859 /* ofxFbo */ = {
-			isa = PBXGroup;
-			children = (
-				2794EB62127B3E5200B9A859 /* src */,
-			);
-			name = ofxFbo;
-			path = ../../../addons/ofxFbo;
-			sourceTree = SOURCE_ROOT;
-		};
-		2794EB62127B3E5200B9A859 /* src */ = {
-			isa = PBXGroup;
-			children = (
-				2794EB63127B3E5200B9A859 /* ofxFbo.cpp */,
-				2794EB64127B3E5200B9A859 /* ofxFbo.h */,
-			);
-			name = src;
-			path = ../../../addons/ofxFbo/src;
-			sourceTree = SOURCE_ROOT;
-		};
 		2794EB65127B3E5200B9A859 /* ofxShader */ = {
 			isa = PBXGroup;
 			children = (
@@ -220,7 +198,6 @@
 		27CFD38F122AB59800B240D8 /* addons */ = {
 			isa = PBXGroup;
 			children = (
-				2794EB61127B3E5200B9A859 /* ofxFbo */,
 				2794EB65127B3E5200B9A859 /* ofxShader */,
 				27CFD3A9122AB5F600B240D8 /* ofxVectorMath */,
 			);
@@ -634,7 +611,6 @@
 				27CFD3B9122AB5F600B240D8 /* ofxMatrix3x3.cpp in Sources */,
 				27CFD3BA122AB5F600B240D8 /* ofxMatrix4x4.cpp in Sources */,
 				27CFD3BB122AB5F600B240D8 /* ofxQuaternion.cpp in Sources */,
-				2794EB69127B3E5200B9A859 /* ofxFbo.cpp in Sources */,
 				2794EB6A127B3E5200B9A859 /* ofxShader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

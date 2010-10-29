@@ -1,6 +1,7 @@
 uniform float focusDistance;
 uniform float aperture;
 uniform float lineWidth;
+uniform float aspectRatio;
 
 attribute float side;
 attribute vec3 next;
@@ -14,7 +15,8 @@ void main() {
   vec4 curScreenPosition = gl_ModelViewProjectionMatrix * gl_Vertex;
 	vec4 nextScreenPosition = gl_ModelViewProjectionMatrix * vec4(next, 1.);
 	
-	vec2 normal = normalize(nextScreenPosition.xy - curScreenPosition.xy) * rotate90;
+	vec2 diff = nextScreenPosition.xy - curScreenPosition.xy;
+	vec2 normal = normalize(diff) * rotate90;
 	
   float diameter = abs(curScreenPosition.z - focusDistance) * aperture + lineWidth;
 	
@@ -22,5 +24,7 @@ void main() {
 	gl_FrontColor = gl_Color;
   gl_FrontColor.a /= (diameter / lineWidth);
 	
-	gl_Position = curScreenPosition + vec4(side * normal * diameter, 0, 0);
+	vec4 offset = vec4(side * normal * diameter, 0, 0);
+	offset.y *= aspectRatio;
+	gl_Position = curScreenPosition + offset;
 }

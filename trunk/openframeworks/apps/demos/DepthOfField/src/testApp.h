@@ -2,7 +2,6 @@
 
 #include "ofMain.h"
 #include "ofxShader.h"
-#include "ofxFbo.h"
 #include "ofxVectorMath.h"
 
 class testApp : public ofBaseApp {
