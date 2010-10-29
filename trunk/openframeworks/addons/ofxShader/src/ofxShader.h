@@ -2,6 +2,8 @@
 
 /*
 	todo: add support for attachment of multiple shaders
+	if a uniform or attribute isn't available, this will cause an error
+	make sure to catch and report that error.
 */
 
 #include "ofMain.h"
@@ -24,46 +26,45 @@ public:
 	void setTexture(const char* name, ofBaseHasTexture& img, int textureLocation);
 	void setTexture(const char* name, ofTexture& img, int textureLocation);
 
-	// set a single uniform vector
-	void setUniform(const char* name, int v1);
-	void setUniform(const char* name, int v1, int v2);
-	void setUniform(const char* name, int v1, int v2, int v3);
-	void setUniform(const char* name, int v1, int v2, int v3, int v4);
+	// set a single uniform value
+	void setUniform1i(const char* name, int v1);
+	void setUniform2i(const char* name, int v1, int v2);
+	void setUniform3i(const char* name, int v1, int v2, int v3);
+	void setUniform4i(const char* name, int v1, int v2, int v3, int v4);
 
-	void setUniform(const char* name, float v1);
-	void setUniform(const char* name, float v1, float v2);
-	void setUniform(const char* name, float v1, float v2, float v3);
-	void setUniform(const char* name, float v1, float v2, float v3, float v4);
+	void setUniform1f(const char* name, float v1);
+	void setUniform2f(const char* name, float v1, float v2);
+	void setUniform3f(const char* name, float v1, float v2, float v3);
+	void setUniform4f(const char* name, float v1, float v2, float v3, float v4);
 
-	// set an array of uniform vectors
-	void setUniform1v(const char* name, int* v, int count = 1);
-	void setUniform2v(const char* name, int* v, int count = 1);
-	void setUniform3v(const char* name, int* v, int count = 1);
-	void setUniform4v(const char* name, int* v, int count = 1);
+	// set an array of uniform values
+	void setUniform1iv(const char* name, int* v, int count = 1);
+	void setUniform2iv(const char* name, int* v, int count = 1);
+	void setUniform3iv(const char* name, int* v, int count = 1);
+	void setUniform4iv(const char* name, int* v, int count = 1);
 
-	void setUniform1v(const char* name, float* v, int count = 1);
-	void setUniform2v(const char* name, float* v, int count = 1);
-	void setUniform3v(const char* name, float* v, int count = 1);
-	void setUniform4v(const char* name, float* v, int count = 1);
+	void setUniform1fv(const char* name, float* v, int count = 1);
+	void setUniform2fv(const char* name, float* v, int count = 1);
+	void setUniform3fv(const char* name, float* v, int count = 1);
+	void setUniform4fv(const char* name, float* v, int count = 1);
 
-	// set attributes that vary per vertex
-	void setAttribute(const char* name, short v1);
-	void setAttribute(const char* name, short v1, short v2);
-	void setAttribute(const char* name, short v1, short v2, short v3);
-	void setAttribute(const char* name, short v1, short v2, short v3, short v4);
+	// set attributes that vary per vertex (look up the location before glBegin)
+	GLint getAttributeLocation(const char* name);
+	
+	void setAttribute1s(GLint location, short v1);
+	void setAttribute2s(GLint location, short v1, short v2);
+	void setAttribute3s(GLint location, short v1, short v2, short v3);
+	void setAttribute4s(GLint location, short v1, short v2, short v3, short v4);
 
-	void setAttribute(const char* name, float v1);
-	void setAttribute(const char* name, float v1, float v2);
-	void setAttribute(const char* name, float v1, float v2, float v3);
-	void setAttribute(const char* name, float v1, float v2, float v3, float v4);
+	void setAttribute1f(GLint location, float v1);
+	void setAttribute2f(GLint location, float v1, float v2);
+	void setAttribute3f(GLint location, float v1, float v2, float v3);
+	void setAttribute4f(GLint location, float v1, float v2, float v3, float v4);
 
-	void setAttribute(const char* name, double v1);
-	void setAttribute(const char* name, double v1, double v2);
-	void setAttribute(const char* name, double v1, double v2, double v3);
-	void setAttribute(const char* name, double v1, double v2, double v3, double v4);
-
-	void setAttributeLocation(const char* name, int index);
-	int getAttributeLocation(const char* name);
+	void setAttribute1d(GLint location, double v1);
+	void setAttribute2d(GLint location, double v1, double v2);
+	void setAttribute3d(GLint location, double v1, double v2, double v3);
+	void setAttribute4d(GLint location, double v1, double v2, double v3, double v4);
 
 	void printActiveUniforms();
 	void printActiveAttributes();
@@ -74,7 +75,7 @@ public:
 
 protected:
 	string loadTextFile(string filename);
-	GLint getLoc(const char* name);
+	GLint getUniformLocation(const char* name);
 
 	void compileShader(GLuint shader, string source, string type);
 	void checkProgramInfoLog(GLuint program);
